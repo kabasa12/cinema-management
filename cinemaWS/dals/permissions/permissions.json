@@ -1,0 +1,31 @@
+{
+    "usersPermissions": [
+        {
+            "_id": "5fa268d87375aedfdc08b3e2",
+            "permissions": [
+                "viewSubscriptions",
+                "createSubscriptions",
+                "deleteSubscriptions",
+                "updateSubscriptions",
+                "viewMovies",
+                "createMovies",
+                "deleteMovies",
+                "updateMovies"
+            ]
+        },
+        {
+            "_id": "5fa4101e7375aedfdc098c2d",
+            "permissions": [
+                "viewSubscriptions",
+                "viewMovies"
+            ]
+        },
+        {
+            "_id": "5faa72962d60d26ec45112fc",
+            "permissions": [
+                "viewMovies",
+                "viewSubscriptions"
+            ]
+        }
+    ]
+}
