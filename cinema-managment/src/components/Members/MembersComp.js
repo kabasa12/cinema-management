@@ -1,12 +1,11 @@
-import React,{useContext,useState,useEffect} from 'react';
+import React,{useContext,useEffect} from 'react';
 import Context from '../../context/context';
 import { useHistory,useParams } from 'react-router-dom';
-import {CssBaseline, Button, Grid, Typography, Container, TextField} from '@material-ui/core';
+import {CssBaseline, Button, Grid, Typography, Container} from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import MembComp from './MembComp';
 import 'fontsource-jolly-lodger/index.css';
 import pellet from '../../Utils/pellet';
-import axios from 'axios'
 import utils from '../../Utils/utils';
 
 const useStyles = makeStyles((theme) => ({
@@ -35,11 +34,9 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-function MembersComp (props) {
+function MembersComp () {
   const [state,dispatch] = useContext(Context);
   const history = useHistory();
-  const [momber_id,setMemberId] = useState("");
-  const [currMembers,setCurrMembers] = useState([]);
   const classes = useStyles();
   
   let {memberId} = useParams();
@@ -55,25 +52,21 @@ function MembersComp (props) {
 
     const getSubscriptionByMember = async (memberId) => {
       let suscriptionMember = await utils.getSubscriptionByMemberId(memberId)
-      if (suscriptionMember) {
-        dispatch({type:"SET_CURR_SUBSCRIPTION", payload:suscriptionMember});
+      if (suscriptionMember.isSuccess) {
+        dispatch({type:"SET_CURR_SUBSCRIPTION", payload:suscriptionMember.data});
       }
     }
 
     if(memberId){
-      console.log("members subscribing by member id")
       getSubscriptionByMember(memberId); 
     } else {
-      console.log("members subscribing")
       getAllSubscriptions(); 
     }
 
     return () => {
       if(memberId){
-        console.log("members unsubscribing by member id")
         getSubscriptionByMember(memberId); 
       } else {
-        console.log("members unsubscribing")
         getAllSubscriptions(); 
       }
     }

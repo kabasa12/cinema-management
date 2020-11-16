@@ -127,7 +127,7 @@ const addMember = function (memberObj) {
 
 const changeMember = function (id, memberObj) {
     return new Promise((resolve, reject) => {
-        Member.findByIdAndUpdate(id,{...memberObj}, 
+        Member.findByIdAndUpdate(id,{...memberObj},{new: true},
             function (err) {
                 if (err) {
                     reject(err);

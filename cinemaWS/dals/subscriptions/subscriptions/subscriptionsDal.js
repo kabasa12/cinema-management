@@ -19,7 +19,7 @@ exports.getSubscriptionByMemberId = async (id) => {
     let subscription = await axios.get('http://localhost:8200/api/subscriptions/member/' + id);
     if(subscription.data.isSuccess) {
         return subscription.data
-    } else return subscription.msg
+    } else return subscription.data
 }
 
 exports.getSubscriptionByMovieId = async (id) => {

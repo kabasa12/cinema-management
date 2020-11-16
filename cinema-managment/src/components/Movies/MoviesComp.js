@@ -3,14 +3,12 @@ import Context from '../../context/context';
 import { useHistory,useParams } from 'react-router-dom';
 import {CssBaseline, Button, Grid, Typography, Container, TextField} from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
-import usePageBottom from '../../Utils/usePageBottem';
 import 'fontsource-jolly-lodger/index.css';
 import LazyLoad from 'react-lazyload';
 import pellet from '../../Utils/pellet'
 import MovieComp from './MovieComp';
-import utils from '../../Utils/utils';
+import utils from '../../Utils/moviesUtil';
 import './Movie.css';
-import axios from 'axios'
 
 const useStyles = makeStyles((theme) => ({
   icon: {
@@ -38,16 +36,12 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-function MoviesComp (props) {
+function MoviesComp () {
   const [state,dispatch] = useContext(Context);
   const history = useHistory();
   const [searchToggle,setSearchToggle] = useState(false);
   const [searchText,setSearchText] = useState("");
   const [searchMovies,setSearchMovies] = useState([]);
-  const [topMovies,setTopMovies] = useState([]);
-  const [movie_id,setMovieId] = useState("");
-  const [cnt,setCnt] = useState(20);
-  const isPageBottom = usePageBottom();
   const classes = useStyles();
   
   let {movieId} = useParams();
@@ -68,19 +62,15 @@ function MoviesComp (props) {
       }
     }
     if (movieId) {
-      console.log("movies subscribing by movie id")
       getMovieById(movieId); 
     } else {
-      console.log("movies subscribing")
       getMovies(); 
     }
 
     return () => {
       if (movieId) {
-        console.log("movies unsubscribing by movie id")
         getMovieById(movieId); 
       } else {
-        console.log("movies unsubscribing")
         getMovies(); 
       }
     }
@@ -178,7 +168,7 @@ function MoviesComp (props) {
             searchToggle ? searchMovies.map(movie => {
               return (
                   <LazyLoad key={movie._id}>
-                    <MovieComp key={movie.id} movie={movie} deleteHandle={afterDeleteHandle}/>
+                    <MovieComp key={movie._id} movie={movie} deleteHandle={afterDeleteHandle}/>
                   </LazyLoad>
                     )
             })

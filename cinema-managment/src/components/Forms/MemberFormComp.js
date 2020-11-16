@@ -1,12 +1,12 @@
 import React,{useState,useEffect,useContext} from 'react';
 import Context from '../../context/context';
 import {useParams,useHistory} from 'react-router-dom'
-import uuid from 'react-uuid';
 import clsx from 'clsx';
 import { makeStyles } from '@material-ui/core/styles';
 import {  Container, CssBaseline, TextField, Button, Typography } from '@material-ui/core';
 import 'fontsource-jolly-lodger/index.css';
 import pellet from '../../Utils/pellet';
+import utils from '../../Utils/membersUtil'
 
 const useStyles = makeStyles((theme) => ({
     paper: {
@@ -48,13 +48,14 @@ const useStyles = makeStyles((theme) => ({
     }
 }));
 
-const MemberFormComp = (props) => {
+const MemberFormComp = () => {
     const [state,dispatch] = useContext(Context);
     const classes = useStyles();
     const history = useHistory();
-    const [inputs, setInputs] = useState({name:"",
+    const [inputs, setInputs] = useState({userName:"",
                                           email:"",
-                                          city:""
+                                          city:"",
+                                          id:""
                                         });
                                 
     let {memberId} = useParams(); 
@@ -62,7 +63,7 @@ const MemberFormComp = (props) => {
     useEffect(() => {
         if(state.isEditMember){
             
-            let inp = { name:state.currentMember.name,
+            let inp = { userName:state.currentMember.member,
                         email:state.currentMember.email,
                         city:state.currentMember.city,
                         id:memberId
@@ -81,25 +82,29 @@ const MemberFormComp = (props) => {
         history.push("/members");
     }
 
-    const handleUser = (member) => {
-        state.isEditMember ?
-        dispatch({ type: 'UPDATE_MEMBER', payload: member }) :
-        dispatch({ type: 'ADD_MEMBER', payload: member });
-
+    const handleMember = async (memberObj) => {
+        let resp = null;
+        if (state.isEditMember) {
+            resp = await utils.updateMember(memberId,memberObj)
+            if(resp.isSuccess)
+                history.push('/members')
+        } else {
+            resp = await utils.addMember(memberObj);
+            if(resp.isSuccess)
+                history.push('/members')
+        }
         dispatch({type:"FINISH_EDIT",payload:"member"});
     }
 
     const handleSubmit =(e) => {
         e.preventDefault();
-        let id = state.isEditMember ? memberId : uuid();    
-       
-        let newMember = {id:id,
-                        name:inputs.name,
+        
+        let newMember = {userName:inputs.userName,
                         email:inputs.email,
                         city:inputs.city}
 
-        handleUser(newMember);
-        setInputs({name:"",email:"",city:""});
+        handleMember(newMember);
+        setInputs({userName:"",email:"",city:"",id:""});
         returnBack();           
     }
 
@@ -120,11 +125,11 @@ const MemberFormComp = (props) => {
                             margin="normal"
                             required
                             fullWidth
-                            id="name"
+                            id="userName"
                             label="Name"
-                            name="name"
+                            name="userName"
                             autoFocus
-                            value={inputs.name}
+                            value={inputs.userName}
                             onChange={handleInputChange}
                         />
                         <TextField

@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 
 exports.getAllSubscriptions = async (req, resp) => {
     try {
-        let data = await allSubscriptions()
+        let data = await allSubscriptions();
         return resp.status(200).json({ 
             isSuccess: true, 
             data:data});
@@ -21,9 +21,16 @@ exports.getSubscriptionById = async (req, resp) => {
     try {
         let subscriptionId = req.params.id;
         let data = await subscriptionById(subscriptionId)
-        return resp.status(200).json({ 
-            isSuccess: true, 
-            data:data});
+        if (data !== null) {
+            return resp.status(200).json({ 
+                isSuccess: true, 
+                data:data});
+        } else {
+            return resp.status(203).json({ 
+                isSuccess: false, 
+                data:{msg:"No subscription data found"}});
+        }
+        
     }
     catch (err) {
         return resp.status(500).json({
@@ -38,9 +45,15 @@ exports.getSubscriptionByMemberId = async (req, resp) => {
     try {
         let memberId = req.params.id;
         let data = await subscriptionByMemberId(memberId)
-        return resp.status(200).json({ 
-            isSuccess: true, 
-            data:data});
+        if (data !== null) {
+            return resp.status(200).json({ 
+                isSuccess: true, 
+                data:data});
+        } else {
+            return resp.status(203).json({ 
+                isSuccess: false, 
+                data:{msg:"No subscription data found for member " , memberId}});
+        } 
     }
     catch (err) {
         return resp.status(500).json({
@@ -55,9 +68,15 @@ exports.getSubscriptionByMovieId = async (req, resp) => {
     try {
         let movieId = req.params.id;
         let data = await subscriptionByMovieId(movieId)
-        return resp.status(200).json({ 
-            isSuccess: true, 
-            data:data});
+        if (data !== null) {
+            return resp.status(200).json({ 
+                isSuccess: true, 
+                data:data});
+        } else {
+            return resp.status(203).json({ 
+                isSuccess: true, 
+                data:{msg:"No subscription data found for movie " , movieId}});
+        }  
     }
     catch (err) {
         return resp.status(500).json({

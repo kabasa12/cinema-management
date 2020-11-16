@@ -3,7 +3,7 @@ import Context from '../../context/context';
 import {Link,useHistory} from 'react-router-dom';
 import { makeStyles } from '@material-ui/core/styles';
 import clsx from 'clsx';
-import {Card,CardActionArea,CardActions,CardContent,CardMedia,Collapse, Hidden} from '@material-ui/core';
+import {Card,CardActionArea,CardActions,CardContent,CardMedia,Collapse} from '@material-ui/core';
 import {Button,Typography,Grid,List,ListItem,IconButton,Tooltip} from '@material-ui/core';
 import {red} from '@material-ui/core/colors';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
@@ -11,7 +11,8 @@ import StarsIcon from '@material-ui/icons/Stars';
 import EditIcon from '@material-ui/icons/Edit';
 import DeleteIcon from '@material-ui/icons/Delete';
 import pellet from '../../Utils/pellet';
-import utils from '../../Utils/utils'
+import utils from '../../Utils/utils';
+import moviesUtil from '../../Utils/moviesUtil'
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -43,8 +44,7 @@ const useStyles = makeStyles((theme) => ({
     flexGrow: 1
   },
   ListItem:{
-    paddingLeft:"2px",
-    paddingRight:"2px",
+    paddingLeft:"1px",
     fontSize:"13px"
   }
 }));
@@ -82,36 +82,33 @@ function  MovieComp (props) {
   };
 
   const deleteMovie = async () => {
-    //dispatch({type:"DELETE_MOVIE" , payload:movie_id});
-    //dispatch({type:"DELETE_SUBSC_MOVIE",payload:movie_id});
     let deleteMovie;
     let subscriptionId = await utils.getSubscriptionByMovieId(movie_id);
       if(subscriptionId.isSuccess) {
-        if(!subscriptionId.data.msg) {
-          subscriptionId.data.map( async subscribe => {
-            let movies = subscribe.movies.filter(movie => movie.movieId !== movie_id)
-            let subscribeObj = {_id:subscribe._id,
-                                memberId:subscribe.memberId,
-                                movies:movies}
-            console.log(subscribeObj)
-            let updateSubs = await utils.updateSubscription(subscribe._id,subscribeObj);
-            if (updateSubs.isSuccess) {
-              deleteMovie = await utils.deleteMovie(movie_id)
-              if(deleteMovie.isSuccess){
-                props.deleteHandle();
-                let updatedMovie = state.movies.filter(movie => movie._id != movie_id)
-                await dispatch({type:"SET_MOVIES", payload:updatedMovie});
-              } else {
-                console.log(deleteMovie.data.msg);
-                props.deleteHandle();
-              }  
-            } else {
-              console.log(updateSubs.data.msg);
+        subscriptionId.data.map( async subscribe => {
+          let movies = subscribe.movies.filter(movie => movie.movieId !== movie_id)
+          let subscribeObj = {_id:subscribe._id,
+                              memberId:subscribe.memberId,
+                              movies:movies}
+
+          let updateSubs = await utils.updateSubscription(subscribe._id,subscribeObj);
+          if (updateSubs.isSuccess) {
+            deleteMovie = await moviesUtil.deleteMovie(movie_id)
+            if(deleteMovie.isSuccess){
               props.deleteHandle();
-            }
-          })  
-        }
-        deleteMovie = await utils.deleteMovie(movie_id)
+              let updatedMovie = state.movies.filter(movie => movie._id != movie_id)
+              await dispatch({type:"SET_MOVIES", payload:updatedMovie});
+            } else {
+              console.log(deleteMovie.data.msg);
+              props.deleteHandle();
+            }  
+          } else {
+            console.log(updateSubs.data.msg);
+            props.deleteHandle();
+          }
+        })  
+      } else {
+        deleteMovie = await moviesUtil.deleteMovie(movie_id)
         if(deleteMovie.isSuccess){
           props.deleteHandle();
           let updatedMovie = state.movies.filter(movie => movie._id != movie_id)
@@ -120,7 +117,7 @@ function  MovieComp (props) {
           console.log(deleteMovie.data.msg);
           props.deleteHandle();
         }  
-      }  
+      }
   }
 
   const showEditMovieForm = () => {
@@ -205,13 +202,16 @@ function  MovieComp (props) {
           }
           <Collapse in={expanded} timeout="auto" unmountOnExit>
             <CardContent className={classes.cardContent}>
-              <Typography variant="body2" component="h2">Subscriptions Watched</Typography>
+              <Typography variant="body2" component="h2">Subscribers Watched</Typography>
               <List>
                 { 
                   subs.map(sub => {
                     return (<ListItem className={classes.ListItem} key={sub._id}>
-                      <StarsIcon style={{fontSize:"1rem",margin:"auto"}}/>
-                      <Link to={`/members/${sub.memberId}`}>{sub.member}</Link>  - {sub.watchDate}</ListItem>)
+                      <StarsIcon style={{fontSize:"1rem"}}/>
+                      <Link style={{fontSize:"12px"}} to={`/members/${sub.memberId}`}>{sub.member}</Link>
+                      <Typography style={{fontSize:"1vw" , margin:"auto"}}>
+                        {sub.watchDate}
+                      </Typography></ListItem>)
                   })
                 }
               </List>

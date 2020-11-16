@@ -1,13 +1,12 @@
 import React,{useState,useEffect,useContext} from 'react';
 import Context from '../../context/context';
 import {useParams,useHistory} from 'react-router-dom'
-import uuid from 'react-uuid';
 import clsx from 'clsx'
 import { makeStyles } from '@material-ui/core/styles';
 import {Container,CssBaseline,TextField,Button,Typography } from '@material-ui/core';
 import 'fontsource-jolly-lodger/index.css';
 import pellet from '../../Utils/pellet';
-import axios from 'axios'
+import utils from '../../Utils/moviesUtil';
 
 const useStyles = makeStyles((theme) => ({
     paper: {
@@ -17,7 +16,7 @@ const useStyles = makeStyles((theme) => ({
         alignItems: 'center',
     },
     form: {
-        width: '100%', // Fix IE 11 issue.
+        width: '100%', 
         marginTop: theme.spacing(1),
     },
     submit: {
@@ -49,7 +48,7 @@ const useStyles = makeStyles((theme) => ({
     }
 }));
 
-const MovieFormComp = (props) => {
+const MovieFormComp = () => {
     const [state,dispatch] = useContext(Context);
     const classes = useStyles();
     const history = useHistory();
@@ -85,39 +84,34 @@ const MovieFormComp = (props) => {
         history.push("/movies");
     }
 
-    const handleMovie = async (movie) => {
+    const handleMovie = async (movieObj) => {
         let resp = null;
         if (state.isEditMovie) {
-            resp = await axios.put(`http://localhost:8000/api/subscriptions/movies/${movieId}`,movie)
-            if(resp.data.isSuccess)
+            resp = await utils.updateMovie(movieId,movieObj)
+            if(resp.isSuccess)
                 history.push('/movies')
         } else { 
-            resp = await axios.post(`http://localhost:8000/api/subscriptions/movies`,movie);
-            if(resp.data.isSuccess)
+            resp = await utils.addMovie(movieObj);
+            if(resp.isSuccess)
                 history.push('/movies')
         }
-        // dispatch({ type: 'UPDATE_MOVIE', payload: movie }) :
-        // dispatch({ type: 'ADD_MOVIE', payload: movie });
-
         await dispatch({type:"FINISH_EDIT",payload:"movie"});
     }
 
     const handleSubmit =(e) => {
         e.preventDefault();
-        let NewDate = new Date(inputs.premiered).getFullYear();  
-        let preDate =  state.isEditMovie ? inputs.premiered :  NewDate;
        
         let newMovie;
         state.isEditMovie ?
         newMovie = {id:movieId,
                     name:inputs.name,
                     genres:inputs.genres,
-                    premiered: preDate,
+                    premiered:inputs.premiered,
                     image:inputs.image} 
         :
         newMovie = {name:inputs.name,
                     genres:inputs.genres.split(','),
-                    premiered: preDate,
+                    premiered:inputs.premiered,
                     image:inputs.image}
 
         handleMovie(newMovie);

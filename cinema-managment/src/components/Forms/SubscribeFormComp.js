@@ -1,11 +1,11 @@
-import React,{useContext,useState,useEffect} from 'react';
+import React,{useContext,useState} from 'react';
 import Context from '../../context/context';
-import uuid from 'react-uuid'
 import { makeStyles } from '@material-ui/core/styles';
 import {Container, CssBaseline,TextField,Button,Typography } from '@material-ui/core';
 import {Select,MenuItem,FormHelperText} from '@material-ui/core';
 import 'fontsource-jolly-lodger/index.css';
 import pellet from '../../Utils/pellet';
+import utils from '../../Utils/utils';
 
 const useStyles = makeStyles((theme) => ({
     paper: {
@@ -46,43 +46,36 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 function SubscribeFormComp(props) {
-  const [state,dispatch] = useContext(Context);
+  const [state] = useContext(Context);
   const classes = useStyles();
   const [movieSelect,setMovieSelect] = useState(0);
   const [watch,setWatch] = useState("01/01/1980");
-  const [memberMovies,setMemberMovies] = useState([]);
-
-  useEffect(() => {
-    
-    if(props.userMovies.length > 0) {
-      let watched = props.userMovies[0].movies.map(x => {return x.movieId});
-      let movies = state.movies.filter(m => !watched.includes(m.id));
-      setMemberMovies(movies)
-    } else {
-      setMemberMovies(state.movies)
-    }
-    
-    
-  },[props.memberId])
 
   const handleCancel = () => {
     props.handleCancel();
   }
 
-  const handleSubsc = () => {
+  const handleSubsc = async () => {
+    let data = null;
+    let d = new Date(watch)
+    let watchDate = new Date(d.getTime() - d.getTimezoneOffset() * 60 * 1000)
+                        .toISOString().split('T')[0];
 
-    let id = props?.userMovies[0]?.id;
-    let data;
-    let watchDate = new Date(watch).toLocaleString('en-GB',{day: 'numeric', 
-                                                            month: 'numeric', 
-                                                            year: 'numeric' });
-    if(id) {
-      
-      data = {movieId:movieSelect,watchedDate:watchDate};
-      dispatch({type:"UPDATE_SUBSCRIBE",payload:{data:data,id:id}});
+    let subscription = await utils.getSubscriptionByMemberId(props.memberId);
+    if(subscription.isSuccess) {
+      data = {...subscription.data,
+                  movies:[...subscription.data.movies,{movieId:movieSelect,watchDate:watchDate}]}
+                  
+      let updateSubscription = await utils.updateSubscription(subscription.data._id,data);
+      if (!updateSubscription.isSuccess) {
+        console.log(updateSubscription.data.mag)
+      }
     } else {
-      data={id:uuid(),memberId:props.memberId,movies:[{movieId:movieSelect,watchedDate:watchDate}]}
-      dispatch({type:"ADD_SUBSCRIBE",payload:data});
+      data = {memberId:props.memberId,movies:{movieId:movieSelect,watchDate:watchDate}}
+      let addSubscription = await utils.addSubscription(data);
+      if (!addSubscription.isSuccess) {
+        console.log(addSubscription.data.mag)
+      }
     }
     handleCancel();
   }
@@ -101,8 +94,8 @@ function SubscribeFormComp(props) {
                 <MenuItem value="" disabled>
                   Choose Movie ...
                 </MenuItem>
-                {memberMovies.map(m => {
-                  return <MenuItem key={m.id} value={m.id}>{m.name}</MenuItem>
+                {props.userMovies.map(m => {
+                  return <MenuItem key={m._id} value={m._id}>{m.name}</MenuItem>
                 })}
               </Select>
               <FormHelperText>Choose Movie ...</FormHelperText>

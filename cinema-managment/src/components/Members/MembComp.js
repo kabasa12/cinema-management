@@ -1,4 +1,4 @@
-import React,{useContext,useEffect,useState} from 'react';
+import React,{useContext,useState} from 'react';
 import Context from '../../context/context';
 import {Link,useHistory} from 'react-router-dom';
 import SubscribeFormComp from '../Forms/SubscribeFormComp';
@@ -12,6 +12,8 @@ import EditIcon from '@material-ui/icons/Edit';
 import DeleteIcon from '@material-ui/icons/Delete';
 import VideoCallIcon from '@material-ui/icons/VideoCall';
 import pellet from '../../Utils/pellet';
+import utils from '../../Utils/utils';
+import membersUtil from '../../Utils/membersUtil';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -38,58 +40,75 @@ function MemberComp (props) {
   const [state,dispatch] = useContext(Context);
   const history = useHistory();
 
-  const [member_id,setMemberId] = useState("");
   const [memberDetails,setMemberDetails] = useState([]);
   const [newSubsc,setNewSubsc] = useState(false);
   const classes = useStyles();
   const [expanded, setExpanded] = useState(false);
+  const {memberId} = props.member;
 
-  useEffect(()=> {
-    setMemberId(props.member._id);
-  },[]);
-
-  // useEffect(() => {
-  //   updateMember();
-  // },[member_id,state.subscriptions]);
-
-  // const updateMember = () => {
-  //   let userMovies = state.subscriptions.filter( m => m.memberId == member_id)
-    
-  //   for(let i=0;i<userMovies.length;i++){
-  //     for(let j=0; j<userMovies[i].movies.length; j++){
-  //       let movieDetails = state.movies.filter(m => m.id == userMovies[i].movies[j].movieId);
-  //       movieDetails = {...movieDetails[0]}
-  //       userMovies[i].movies[j].name = movieDetails.name;
-  //       setMemberDetails(userMovies);    
-  //     }  
-  //   }
-  // }
-
-  const deleteMember = () => {
-    dispatch({type:"DELETE_MEMBER" , payload:member_id});
-    dispatch({type:"DELETE_SUBSC_MEMBER",payload:member_id})
+  
+  const deleteMember = async () => {
+    let deleteMember;
+    let subscriptionId = await utils.getSubscriptionByMemberId(memberId);
+      if(subscriptionId.isSuccess) {
+          let deleteSubscriptions = await utils.deleteSubscription(subscriptionId.data._id)
+          if(deleteSubscriptions.isSuccess) {
+            deleteMember = await membersUtil.deleteMember(memberId)
+            if(deleteMember.isSuccess){
+              let subscriptions = await utils.getSubscriptions()
+              if (subscriptions.length > 0) {
+                await dispatch({type:"SET_SUBSCRIPTIONS", payload:subscriptions});
+              }
+            }
+          } else console.log(deleteMember.data.msg);
+      } else {
+        deleteMember = await membersUtil.deleteMember(memberId)
+        if(deleteMember.isSuccess){
+          let subscriptions = await utils.getSubscriptions()
+          if (subscriptions.length > 0) {
+            await dispatch({type:"SET_SUBSCRIPTIONS", payload:subscriptions});
+          }
+        } else console.log(deleteMember.data.msg);
+      } 
   }
 
   const showEditMemberForm = () => {
-    dispatch({type:"EDIT",payload:"member"});
     dispatch({type:"EDIT_MEMBER" ,payload:props.member});
-    history.push(`/updateMember/${props.member.id}`);
+    history.push(`/updateMember/${props.member.memberId}`);
   }
 
   const goBack = () => {
     history.push("/movies");
   }
 
-  const handleCancelSubsc = () => {
+  const handleCancelSubsc = async () => {
     setExpanded(!expanded);
     setNewSubsc(false);
+
+    let allsubscriptions = await utils.getSubscriptions()
+    if (allsubscriptions.length > 0) {
+      await dispatch({type:"SET_SUBSCRIPTIONS", payload:allsubscriptions});
+    }
   }
 
   const handleExpandClick = () => {
     setExpanded(!expanded);
-    setNewSubsc(true)
+    setNewSubsc(true);
+
+    
+    const getMemberMoviesLov = async () => {
+      let userWatchedTmp = props.member.movies ? props.member.movies : [];
+      let userWatchedMovie = []
+      for(let i=0; i<userWatchedTmp.length; i++){
+        userWatchedMovie.push(userWatchedTmp[i].movieId)
+      }
+      let userMovies = state.movies.filter(movie => !userWatchedMovie.includes(movie._id));
+      setMemberDetails(userMovies);
+    }
+    if(!expanded)
+      getMemberMoviesLov();
   };
-  
+ 
   return state.userPermissions.viewSubscriptions ? (    
           <Grid item xs={12} sm={6} md={10}>
             <Card className={classes.root}>
@@ -157,7 +176,7 @@ function MemberComp (props) {
                 <CardContent>
                 {newSubsc ? <SubscribeFormComp userMovies={memberDetails} 
                                         handleCancel={handleCancelSubsc}
-                                        memberId={member_id}
+                                        memberId={memberId}
                                         //updateMember={updateMember}
                                         /> : <div/>}
                 </CardContent>

@@ -35,11 +35,10 @@ exports.getSubscriptionById = async (req, resp) => {
                 isSuccess: true,
                 data:data});
         } else {
-            return resp.status(404).json({ 
-                isSuccess: true,
+            return resp.status(203).json({ 
+                isSuccess: false,
                 data:{msg:"Couldn't find specific subscription"}});
         }
-        
     }
     catch (err) {
         return resp.status(500).json({
@@ -55,13 +54,13 @@ exports.getSubscriptionByMemberId = async (req, resp) => {
         let memberId = req.params.id
         let data = await subscriptionByMemberId(memberId)
         
-        if(data){
+        if(data != -1){
             return resp.status(200).json({ 
                 isSuccess: true,
                 data:data});
         } else {
-            return resp.status(201).json({ 
-                isSuccess: true,
+            return resp.status(203).json({ 
+                isSuccess: false,
                 data:{msg:"Couldn't find member subscriptions"}});
         }
     }
@@ -84,8 +83,8 @@ exports.getSubscriptionByMovieId = async (req, resp) => {
                 isSuccess: true,
                 data:data});
         } else {
-            return resp.status(201).json({ 
-                isSuccess: true,
+            return resp.status(203).json({ 
+                isSuccess: false,
                 data:{msg:"Couldn't find movie subscriptions"}});
         }
     }
@@ -100,10 +99,17 @@ exports.getSubscriptionByMovieId = async (req, resp) => {
 
 exports.createSubscription =  async (req, resp) => {
     try {
-        let data = await addSubscription(req.body)
-        return resp.status(200).json({ 
-            isSuccess: true, 
-            data:data});
+        let data = await addSubscription(req.body);
+        if (data !== null) {
+            return resp.status(200).json({ 
+                isSuccess: true, 
+                data:data});
+        } else {
+            return resp.status(203).json({ 
+                isSuccess: false, 
+                data:{msg:"Couldn't add movie subscriptions for member"}});
+        }
+        
     }
     catch (err) {
         return resp.status(500).json({
@@ -118,9 +124,16 @@ exports.updateSubscription = async (req, resp) => {
     try {
         let id = req.params.id;
         let data = await changeSubscription(id,req.body)
-        return resp.status(200).json({ 
-            isSuccess: true, 
-            data:data});
+        if (data !== null) {
+            return resp.status(200).json({ 
+                isSuccess: true, 
+                data:data});
+        } else {
+            return resp.status(203).json({ 
+                isSuccess: false, 
+                data:{msg:"Couldn't update subscription for member"}});
+        }
+        
     }
     catch (err) {
         return resp.status(500).json({
@@ -165,16 +178,19 @@ const allSubscriptions = async () => {
                 memberId:subsc.memberId,
                 member:member.data.userName,
                 email:member.data.email,
+                city:member.data.city,
                 movies
             })
     }))
-    
+    //Add members without subscription
     let allMemmbersData = allMembers.data.map(member => {
         if(allSubscriptions.findIndex(subs => subs.memberId == member._id) == -1)
             return({_id:member._id,
                     memberId:member._id,
                     member:member.userName,
-                    email:member.email})
+                    email:member.email,
+                    city:member.city
+                })
     }).filter(x=> x)
 
     subscriptions = [...subscriptions,...allMemmbersData]
@@ -216,20 +232,21 @@ const subscriptionById = async (id) => {
 const subscriptionByMemberId = async (memberId) => {
     let subscriptionData = await subscriptionsDal.getSubscriptionByMemberId(memberId);
     let subscription = subscriptionData.data
-
     let member = await membersDal.getMembereById(memberId);
-    let resSubscription = {_id:subscription._id,
-                            memberId:subscription.memberId,
-                            member:member.data.userName,
-                            email:member.data.email
-                            }                     
-    let movies = await Promise.all(subscription.movies.map( async movie => {
-        let movieData = await moviesDal.getMovieById(movie.movieId);
-        return ({movieId:movie.movieId,name:movieData.data.name,watchDate:movie.watchDate})
-    }))
-    resSubscription = {...resSubscription,movies}
+    if(subscriptionData.isSuccess) {
+        let resSubscription = {_id:subscription._id,
+                                memberId:subscription.memberId,
+                                member:member.data.userName,
+                                email:member.data.email
+                                }                     
+        let movies = await Promise.all(subscription.movies.map( async movie => {
+            let movieData = await moviesDal.getMovieById(movie.movieId);
+            return ({movieId:movie.movieId,name:movieData.data.name,watchDate:movie.watchDate})
+        }))
+        resSubscription = {...resSubscription,movies}
 
-    return resSubscription
+        return resSubscription;
+    } else return -1
 }
 
 const subscriptionByMovieId = async (movieId) => {
@@ -267,7 +284,7 @@ const subscriptionByMovieId = async (movieId) => {
 
 const addSubscription = async (subscriptionObj) => {
     let resp = await subscriptionsDal.addSubscription(subscriptionObj);
-    return resp.data
+    return resp.data;
 }
 
 const changeSubscription = async (id,subscriptionObj) => {
