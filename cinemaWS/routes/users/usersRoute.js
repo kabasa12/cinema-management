@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const UsersDbBL = require('../../models/usersDb/usersDbBL');
-const PermissionsBL = require('../../models/permissions/permissionsBL')
+const AuthBL = require('../../models/auth/authBL');
 
 router.get('/',UsersDbBL.getAllUsers);
 router.get('/:id', UsersDbBL.getUserById);

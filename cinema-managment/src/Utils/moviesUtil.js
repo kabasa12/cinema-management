@@ -1,8 +1,10 @@
 import axios from 'axios';
 
 const getMovies = async () => {
-    let resp = await axios.get('http://localhost:8000/api/subscriptions/movies');
-    return resp.data.data
+    let resp = await axios.get('http://localhost:8000/api/subscriptions/movies',
+    { withCredentials: true,
+        credentials: 'include'});
+    return resp.data
   }
 
 const getMovieById = async (movieId) => {

@@ -11,7 +11,7 @@ import StarsIcon from '@material-ui/icons/Stars';
 import EditIcon from '@material-ui/icons/Edit';
 import DeleteIcon from '@material-ui/icons/Delete';
 import pellet from '../../Utils/pellet';
-import utils from '../../Utils/utils';
+import subscriptionsUtil from '../../Utils/subscriptionsUtil';
 import moviesUtil from '../../Utils/moviesUtil'
 
 const useStyles = makeStyles((theme) => ({
@@ -70,7 +70,7 @@ function  MovieComp (props) {
   
   const handleExpandClick = () => {
     const getSubs = async () => {
-      let subs = await utils.getMovieSubsc(props.movie._id)
+      let subs = await subscriptionsUtil.getMovieSubsc(props.movie._id)
       if(subs.length > 0)
           setSeubs(subs)
     }
@@ -83,7 +83,7 @@ function  MovieComp (props) {
 
   const deleteMovie = async () => {
     let deleteMovie;
-    let subscriptionId = await utils.getSubscriptionByMovieId(movie_id);
+    let subscriptionId = await subscriptionsUtil.getSubscriptionByMovieId(movie_id);
       if(subscriptionId.isSuccess) {
         subscriptionId.data.map( async subscribe => {
           let movies = subscribe.movies.filter(movie => movie.movieId !== movie_id)
@@ -91,7 +91,7 @@ function  MovieComp (props) {
                               memberId:subscribe.memberId,
                               movies:movies}
 
-          let updateSubs = await utils.updateSubscription(subscribe._id,subscribeObj);
+          let updateSubs = await subscriptionsUtil.updateSubscription(subscribe._id,subscribeObj);
           if (updateSubs.isSuccess) {
             deleteMovie = await moviesUtil.deleteMovie(movie_id)
             if(deleteMovie.isSuccess){

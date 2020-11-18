@@ -6,7 +6,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import {Container,CssBaseline,TextField,Button,Typography } from '@material-ui/core';
 import 'fontsource-jolly-lodger/index.css';
 import pellet from '../../Utils/pellet';
-import utils from '../../Utils/moviesUtil';
+import moviesUtil from '../../Utils/moviesUtil';
 
 const useStyles = makeStyles((theme) => ({
     paper: {
@@ -87,15 +87,17 @@ const MovieFormComp = () => {
     const handleMovie = async (movieObj) => {
         let resp = null;
         if (state.isEditMovie) {
-            resp = await utils.updateMovie(movieId,movieObj)
-            if(resp.isSuccess)
-                history.push('/movies')
+            resp = await moviesUtil.updateMovie(movieId,movieObj)
         } else { 
-            resp = await utils.addMovie(movieObj);
-            if(resp.isSuccess)
-                history.push('/movies')
+            resp = await moviesUtil.addMovie(movieObj);
         }
-        await dispatch({type:"FINISH_EDIT",payload:"movie"});
+        if(resp.isSuccess) {
+            let movies = await moviesUtil.getMovies();
+            if (movies.data.length > 0) {
+                await dispatch({type:"SET_MOVIES", payload:movies.data});
+            } 
+            dispatch({type:"FINISH_EDIT",payload:"movie"});
+        }
     }
 
     const handleSubmit =(e) => {

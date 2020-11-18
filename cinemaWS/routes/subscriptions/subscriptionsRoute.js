@@ -3,9 +3,10 @@ const router = express.Router();
 const SubscriptionsBL = require('../../models/subscriptions/subscriptions/subscriptionsBL');
 const MoviesBL = require('../../models/subscriptions/movies/moviesBL');
 const MembersBL = require('../../models/subscriptions/members/membersBL');
+const auth = require('../../models/auth/jwtAuth');
 
 //-----------------------Movies handlers-------------------------------------//
-router.get('/movies', MoviesBL.getAllMovies);
+router.get('/movies',auth, MoviesBL.getAllMovies);
 router.get('/movies/:id', MoviesBL.getMovieById);
 router.post('/movies', MoviesBL.createMovie);
 router.put('/movies/:id', MoviesBL.updateMovie);

@@ -5,7 +5,7 @@ import {Container, CssBaseline,TextField,Button,Typography } from '@material-ui/
 import {Select,MenuItem,FormHelperText} from '@material-ui/core';
 import 'fontsource-jolly-lodger/index.css';
 import pellet from '../../Utils/pellet';
-import utils from '../../Utils/utils';
+import subscriptionsUtil from '../../Utils/subscriptionsUtil';
 
 const useStyles = makeStyles((theme) => ({
     paper: {
@@ -61,18 +61,18 @@ function SubscribeFormComp(props) {
     let watchDate = new Date(d.getTime() - d.getTimezoneOffset() * 60 * 1000)
                         .toISOString().split('T')[0];
 
-    let subscription = await utils.getSubscriptionByMemberId(props.memberId);
+    let subscription = await subscriptionsUtil.getSubscriptionByMemberId(props.memberId);
     if(subscription.isSuccess) {
       data = {...subscription.data,
                   movies:[...subscription.data.movies,{movieId:movieSelect,watchDate:watchDate}]}
                   
-      let updateSubscription = await utils.updateSubscription(subscription.data._id,data);
+      let updateSubscription = await subscriptionsUtil.updateSubscription(subscription.data._id,data);
       if (!updateSubscription.isSuccess) {
         console.log(updateSubscription.data.mag)
       }
     } else {
       data = {memberId:props.memberId,movies:{movieId:movieSelect,watchDate:watchDate}}
-      let addSubscription = await utils.addSubscription(data);
+      let addSubscription = await subscriptionsUtil.addSubscription(data);
       if (!addSubscription.isSuccess) {
         console.log(addSubscription.data.mag)
       }

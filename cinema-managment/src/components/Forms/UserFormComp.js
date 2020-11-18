@@ -1,7 +1,6 @@
 import React,{useState,useEffect,useContext} from 'react';
 import Context from '../../context/context';
 import {useParams,useHistory} from 'react-router-dom'
-import uuid from 'react-uuid';
 import clsx from 'clsx';
 import { makeStyles } from '@material-ui/core/styles';
 import {Container,CssBaseline,TextField,Button,Typography,Divider} from '@material-ui/core';
@@ -10,6 +9,7 @@ import BookmarkIcon from '@material-ui/icons/Bookmark';
 import BookmarkBorderIcon from '@material-ui/icons/BookmarkBorder';
 import 'fontsource-jolly-lodger/index.css';
 import pellet from '../../Utils/pellet';
+import utils from '../../Utils/utils';
 
 const useStyles = makeStyles((theme) => ({
     paper: {
@@ -56,12 +56,11 @@ const UserFormComp = (props) => {
     const classes = useStyles();
     const history = useHistory();
     const [inputs, setInputs] = useState({userName:"",
-                                          password:"",
                                           firstName:"",
                                           lastName:"",
                                           id:"",
-                                          isAdmin:false,
-                                          createdDate:""
+                                          createdDate:"",
+                                          sessionTimeOut:0
                                         });
                                         
     const [checks,setChecks] = useState({viewSubscriptions:false,
@@ -80,12 +79,11 @@ const UserFormComp = (props) => {
         if(state.isEditUser){
 
             let inp = { userName:state.editedUser.userName,
-                        password:state.editedUser.password,
                         firstName:state.editedUser.firstName,
                         lastName:state.editedUser.lastName,
                         id:userId,
-                        isAdmin:inputs.isAdmin,
                         createdDate:state.editedUser.createdDate,
+                        sessionTimeOut:state.editedUser.sessionTimeOut
                         }
             let chk = {...checks};
             let perm = [...state.editedUser.permissions]
@@ -111,59 +109,46 @@ const UserFormComp = (props) => {
         history.push("/users");
     }
 
-    const handleUser = (user) => {
-        state.isEditUser ?
-        dispatch({ type: 'UPDATE_USER', payload: user }) :
-        dispatch({ type: 'ADD_USER', payload: user });
+    const handleUser = async (userObj) => {
 
+        let resp = null;
+        if (state.isEditUser) {
+            resp = await utils.updateUser(userId,userObj)
+        } else {
+            resp = await utils.addUser(userObj);
+        }
+        if(resp.isSuccess){
+            let users = await utils.getUsers();
+                if (users.data.length > 0) {
+                    await dispatch({type:"SET_USERS", payload:users.data});
+                }   
+        }
         dispatch({type:"FINISH_EDIT",payload:"user"});
     }
 
     const handleSubmit =(e) => {
         e.preventDefault();
-        let NewDate = new Date();
-        NewDate = NewDate.toLocaleString('en-GB',{day: 'numeric', 
-                                                  month: 'numeric', 
-                                                  year: 'numeric' }) 
-        
-        let id = state.isEditUser ? userId : uuid();    
+        let d = new Date()
+        let NewDate = new Date(d.getTime() - d.getTimezoneOffset() * 60 * 1000)
+                        .toISOString().split('T')[0];
+
         let creDate =  state.isEditUser ? inputs.createdDate :  NewDate;
-        let admin = state.isEditUser ? inputs.isAdmin : false;
-        let newUser = {id:id,
+        let permissions = []
+        for(let key of Object.keys(checks)){
+            if(checks[key])
+                permissions.push(key) 
+        } 
+        let newUser = {
                         firstName:inputs.firstName,
                         lastName:inputs.lastName,
                         createdDate: creDate,
                         userName:inputs.userName,
-                        password:inputs.password,
-                        isAdmin:admin,
-                        permissions:[{id:"viewSubscriptions",
-                                      name:"View Subscriptions",
-                                      value:checks.viewSubscriptions},
-                                     {id:"createSubscriptions",
-                                      name:"Create Subscriptions",
-                                      value:checks.createSubscriptions},
-                                     {id:"deleteSubscriptions",
-                                      name:"Delete Subscriptions",
-                                      value:checks.deleteSubscriptions},
-                                     {id:"updateSubscriptions",
-                                      name:"Update Subscriptions",
-                                      value:checks.updateSubscriptions},
-                                     {id:"viewMovies",
-                                      name:"View Movies",
-                                      value:checks.viewMovies},
-                                     {id:"createMovies",
-                                      name:"Create Movies",
-                                      value:checks.createMovies},
-                                     {id:"deleteMovies",
-                                      name:"Delete Movies",
-                                      value:checks.deleteMovies},
-                                     {id:"updateMovies",
-                                      name:"Update Movies",
-                                      value:checks.updateMovies}]}
+                        sessionTimeOut:inputs.sessionTimeOut,
+                        permissions:[...permissions]}
 
         handleUser(newUser);
-        setInputs({userName:"",password:"",
-                   firstName:"",lastName:"",
+        setInputs({userName:"",sessionTimeOut:0,id:"",
+                   firstName:"",lastName:"",createdDate:"",
                    viewSubscriptions:"",createSubscriptions:"",
                    deleteSubscriptions:"",updateSubscriptions:"",
                    viewMovies:"", createMovies:"",deleteMovies:"",updateMovies:""});
@@ -222,12 +207,11 @@ const UserFormComp = (props) => {
                         margin="normal"
                         required
                         fullWidth
-                        name="password"
-                        label="Password"
-                        id="password"
-                        type="password"
-                        autoComplete="current-password"
-                        value={inputs.password}
+                        name="sessionTimeOut"
+                        label="Session TimeOut"
+                        id="sessionTimeOut"
+                        type="number"
+                        value={inputs.sessionTimeOut}
                         onChange={handleInputChange}
                     />
                     <Divider />

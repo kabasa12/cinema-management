@@ -12,7 +12,7 @@ import EditIcon from '@material-ui/icons/Edit';
 import DeleteIcon from '@material-ui/icons/Delete';
 import VideoCallIcon from '@material-ui/icons/VideoCall';
 import pellet from '../../Utils/pellet';
-import utils from '../../Utils/utils';
+import subscriptionsUtil from '../../Utils/subscriptionsUtil';
 import membersUtil from '../../Utils/membersUtil';
 
 const useStyles = makeStyles((theme) => ({
@@ -49,32 +49,28 @@ function MemberComp (props) {
   
   const deleteMember = async () => {
     let deleteMember;
-    let subscriptionId = await utils.getSubscriptionByMemberId(memberId);
+    let subscriptionId = await subscriptionsUtil.getSubscriptionByMemberId(memberId);
       if(subscriptionId.isSuccess) {
-          let deleteSubscriptions = await utils.deleteSubscription(subscriptionId.data._id)
+          let deleteSubscriptions = await subscriptionsUtil.deleteSubscription(subscriptionId.data._id)
           if(deleteSubscriptions.isSuccess) {
             deleteMember = await membersUtil.deleteMember(memberId)
             if(deleteMember.isSuccess){
-              let subscriptions = await utils.getSubscriptions()
-              if (subscriptions.length > 0) {
-                await dispatch({type:"SET_SUBSCRIPTIONS", payload:subscriptions});
-              }
+              let subscriptions = state.subscriptions.filter(subs => subs.memberId !== memberId);
+              await dispatch({type:"SET_SUBSCRIPTIONS", payload:subscriptions});
             }
           } else console.log(deleteMember.data.msg);
       } else {
         deleteMember = await membersUtil.deleteMember(memberId)
         if(deleteMember.isSuccess){
-          let subscriptions = await utils.getSubscriptions()
-          if (subscriptions.length > 0) {
-            await dispatch({type:"SET_SUBSCRIPTIONS", payload:subscriptions});
-          }
+          let subscriptions = state.subscriptions.filter(subs => subs.memberId !== memberId);
+          await dispatch({type:"SET_SUBSCRIPTIONS", payload:subscriptions});
         } else console.log(deleteMember.data.msg);
       } 
   }
 
   const showEditMemberForm = () => {
     dispatch({type:"EDIT_MEMBER" ,payload:props.member});
-    history.push(`/updateMember/${props.member.memberId}`);
+    history.push(`/updateMember/${memberId}`);
   }
 
   const goBack = () => {
@@ -85,7 +81,7 @@ function MemberComp (props) {
     setExpanded(!expanded);
     setNewSubsc(false);
 
-    let allsubscriptions = await utils.getSubscriptions()
+    let allsubscriptions = await subscriptionsUtil.getSubscriptions()
     if (allsubscriptions.length > 0) {
       await dispatch({type:"SET_SUBSCRIPTIONS", payload:allsubscriptions});
     }
@@ -99,6 +95,7 @@ function MemberComp (props) {
     const getMemberMoviesLov = async () => {
       let userWatchedTmp = props.member.movies ? props.member.movies : [];
       let userWatchedMovie = []
+      //conver movies object to list
       for(let i=0; i<userWatchedTmp.length; i++){
         userWatchedMovie.push(userWatchedTmp[i].movieId)
       }
@@ -133,7 +130,7 @@ function MemberComp (props) {
                   <Button size="small" color="secondary" onClick={goBack}>
                     Back To Movies
                   </Button>
-                  <IconButton
+                  {/* <IconButton
                     className={clsx(classes.expand, {
                       [classes.expandOpen]: expanded,
                     })}
@@ -143,7 +140,7 @@ function MemberComp (props) {
                     <Tooltip title="Add Subscription">
                       <VideoCallIcon style={{color:`${pellet.palette.default.main}`}}/>
                     </Tooltip>
-                  </IconButton>.
+                  </IconButton>. */}
                 </CardActions>
                 :
                 <CardActions disableSpacing>
@@ -169,7 +166,7 @@ function MemberComp (props) {
                     <Tooltip title="Add Subscription">  
                       <VideoCallIcon style={{color:`${pellet.palette.default.main}`}}/>
                     </Tooltip>
-                  </IconButton>.
+                  </IconButton>
                 </CardActions>
                 }
               <Collapse in={expanded} timeout="auto" unmountOnExit>

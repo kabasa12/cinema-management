@@ -6,7 +6,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import MembComp from './MembComp';
 import 'fontsource-jolly-lodger/index.css';
 import pellet from '../../Utils/pellet';
-import utils from '../../Utils/utils';
+import subscriptionsUtil from '../../Utils/subscriptionsUtil';
 
 const useStyles = makeStyles((theme) => ({
   icon: {
@@ -44,14 +44,14 @@ function MembersComp () {
   useEffect(() => {
     
     const getAllSubscriptions = async () => {
-      let subscriptions = await utils.getSubscriptions()
+      let subscriptions = await subscriptionsUtil.getSubscriptions()
       if (subscriptions.length > 0) {
         dispatch({type:"SET_SUBSCRIPTIONS", payload:subscriptions});
       }
     }
 
     const getSubscriptionByMember = async (memberId) => {
-      let suscriptionMember = await utils.getSubscriptionByMemberId(memberId)
+      let suscriptionMember = await subscriptionsUtil.getSubscriptionByMemberId(memberId)
       if (suscriptionMember.isSuccess) {
         dispatch({type:"SET_CURR_SUBSCRIPTION", payload:suscriptionMember.data});
       }
@@ -119,7 +119,7 @@ function MembersComp () {
             <Container className={classes.cardGrid} maxWidth="md">
               <Grid container spacing={4} justify="center">
               { memberId ? 
-                  <MembComp key={state.currentSubsc._id} member={state.currentSubsc} 
+                  <MembComp key={memberId} member={state.currentSubsc} 
                     memberId={memberId}/>
               :
                 state.subscriptions.map(member => {

@@ -7,7 +7,7 @@ import 'fontsource-jolly-lodger/index.css';
 import LazyLoad from 'react-lazyload';
 import pellet from '../../Utils/pellet'
 import MovieComp from './MovieComp';
-import utils from '../../Utils/moviesUtil';
+import moviesUtil from '../../Utils/moviesUtil';
 import './Movie.css';
 
 const useStyles = makeStyles((theme) => ({
@@ -49,14 +49,14 @@ function MoviesComp () {
   useEffect(() => {
     
     const getMovies = async () => {
-      let movies = await utils.getMovies();
-      if (movies.length > 0) {
-        await dispatch({type:"SET_MOVIES", payload:movies});
+      let movies = await moviesUtil.getMovies();
+      if (movies.data.length > 0) {
+        await dispatch({type:"SET_MOVIES", payload:movies.data});
       }
     }
 
     const getMovieById = async (movieId) => {
-      let movie = await utils.getMovieById(movieId);
+      let movie = await moviesUtil.getMovieById(movieId);
       if (movie){
         dispatch({type:"SET_CURR_MOVIE", payload:movie});
       }
@@ -174,7 +174,7 @@ function MoviesComp () {
             })
             
             :[ movieId ?
-                <MovieComp key={state.currentMovie._id} movie={state.currentMovie} 
+                <MovieComp key={movieId} movie={state.currentMovie} 
                   deleteHandle={afterDeleteHandle}
                   movieId={movieId}/>
               :

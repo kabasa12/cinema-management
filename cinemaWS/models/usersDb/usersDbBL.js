@@ -1,5 +1,6 @@
 const UsersDb = require('./usersDbSchema');
 const UsersBL = require('../users/usersBL');
+const AuthBL = require('../auth/authBL');
 const axios = require('axios')
 const PermissionBL = require('../permissions/permissionsBL')
 const saltRounds = 10;
@@ -25,15 +26,25 @@ const login = async (req, resp) => {
                 let refreshToken = jwt.sign({_id:user._id}, process.env.REFRESH_TOKEN_SECRET);
                 let userDetails = await axios.get('http://localhost:8000/api/users/' + user._id);
                 
-                resp.cookie('access-token', accessToken, { maxAge: (60 * 30 * 24 * 7), httpOnly: true, sameSite: true});
-                resp.cookie('refresh-token', refreshToken, { maxAge: (60 * 60 * 24 * 7), httpOnly: true, sameSite: true });
-                
-                return resp.status(200).json({
-                    isSuccess: true,
-                    ...userDetails.data,
-                    accessToken: accessToken,
-                    refreshToken: refreshToken
-                });
+                try{
+                    // console.log("the refresh token = ")
+                    // let token = {token:refreshToken}
+                    // console.log(token)
+                    let auth = await AuthBL.createToken({token:refreshToken});
+                    console.log(auth)
+                    resp.cookie('access-token', accessToken, { maxAge: (60 * 30 * 24 * 7), httpOnly: true, sameSite: true});
+                    resp.cookie('refresh-token', refreshToken, { maxAge: (60 * 60 * 24 * 7), httpOnly: true, sameSite: true });
+                    
+                    return resp.status(200).json({
+                        isSuccess: true,
+                        ...userDetails.data
+                    });
+                } catch(err) {
+                    return resp.status(500).json({
+                        isSuccess: false,
+                        data:{msg:"Error - Please try again later"}
+                    });
+                }
             }
         } else {
             return resp.status(401).json({
@@ -60,7 +71,6 @@ const createAccount = async (req, resp) => {
             const hash = bcrypt.hashSync(userData.password, salt);
 
             let userDbObj = { userName: user.userName, password: hash }
-            console.log(userDbObj)
             let userDb = await updateUserDb(user._id, userDbObj);
             if (!userDb._id) {
                 return resp.status(501).json({
@@ -98,11 +108,12 @@ const getAllUsers = async (req, resp) => {
         let allusersData = usersData.map(user => {
             let userDb = usersDbData.filter(data => data._id == user._id)
             let userName = userDb[0].userName;
+            let isAdmin = userDb[0].isAdmin;
 
             let userPermissions = permissionData.filter(perm => perm._id == user._id)
             if (userPermissions.length > 0 && userDb.length > 0) {
                 userPermissions = userPermissions[0].permissions;
-                return { ...user, userName, permissions: userPermissions }
+                return { ...user, userName, isAdmin, permissions: userPermissions }
             } else {
                 msg = "Error - some users are lacking information in db files";
                 return msg
@@ -124,7 +135,7 @@ const getAllUsers = async (req, resp) => {
     catch (err) {
         return resp.status(500).json({
             isSuccess: false,
-            msg: msg,//'Error fetching all users',
+            msg: 'Error fetching all users',
             error: err
         });
     }
@@ -212,7 +223,7 @@ const addUser = async (req, resp) => {
 }
 
 const updateUser = async (req, resp) => {
-    try {
+    try { 
         let id = req.params.id;
         let userDbData = await getUserDbById(id)
         let userDbObj = { userName: req.body.userName, password: userDbData.password }
@@ -292,7 +303,7 @@ const fingUserByName = (userData) => {
 
 const getAllUsersDb = function () {
     return new Promise((resolve, reject) => {
-        UsersDb.find({}, function (err, users) {
+        UsersDb.find({},function (err, users) {
             if (err) {
                 reject(err);
             }
@@ -332,7 +343,7 @@ const addUserDb = function (userDbObj) {
 
 const updateUserDb = function (id, userDbObj) {
     return new Promise((resolve, reject) => {
-        UsersDb.findByIdAndUpdate(id, { ...userDbObj },
+        UsersDb.findByIdAndUpdate(id, { ...userDbObj },{new: true},
             function (err) {
                 if (err) {
                     reject(err);

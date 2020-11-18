@@ -6,7 +6,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import {  Container, CssBaseline, TextField, Button, Typography } from '@material-ui/core';
 import 'fontsource-jolly-lodger/index.css';
 import pellet from '../../Utils/pellet';
-import utils from '../../Utils/membersUtil'
+import membersUtil from '../../Utils/membersUtil'
 
 const useStyles = makeStyles((theme) => ({
     paper: {
@@ -85,15 +85,12 @@ const MemberFormComp = () => {
     const handleMember = async (memberObj) => {
         let resp = null;
         if (state.isEditMember) {
-            resp = await utils.updateMember(memberId,memberObj)
-            if(resp.isSuccess)
-                history.push('/members')
+            resp = await membersUtil.updateMember(memberId,memberObj)
         } else {
-            resp = await utils.addMember(memberObj);
-            if(resp.isSuccess)
-                history.push('/members')
+            resp = await membersUtil.addMember(memberObj);
         }
-        dispatch({type:"FINISH_EDIT",payload:"member"});
+        if(resp.isSuccess)
+            dispatch({type:"FINISH_EDIT",payload:"member"});
     }
 
     const handleSubmit =(e) => {

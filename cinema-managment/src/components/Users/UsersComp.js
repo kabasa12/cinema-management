@@ -1,4 +1,4 @@
-import React,{useContext} from 'react';
+import React,{useContext,useEffect} from 'react';
 import UserComp from './UserComp';
 import { useHistory } from 'react-router-dom';
 import Context from '../../context/context';
@@ -6,6 +6,7 @@ import {CssBaseline, Button, Grid, Typography, Container} from '@material-ui/cor
 import { makeStyles } from '@material-ui/core/styles';
 import 'fontsource-jolly-lodger/index.css';
 import pellet from '../../Utils/pellet'
+import utils from '../../Utils/utils'
 
 const useStyles = makeStyles((theme) => ({
   icon: {
@@ -33,10 +34,23 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-function UsersComp(props) {
+function UsersComp() {
   const [state,dispatch] = useContext(Context)
   const history = useHistory();
   const classes = useStyles();
+
+  useEffect(() => {
+
+    const getUsers= async () => {
+      let users = await utils.getUsers();
+      if (users.data.length > 0) {
+        await dispatch({type:"SET_USERS", payload:users.data});
+      }
+    }
+    getUsers();
+
+    return () => getUsers();
+  },[])
 
   const showAllUsers = () => {
     history.push("/users");
@@ -84,7 +98,7 @@ function UsersComp(props) {
           <Grid container spacing={4} justify="center">
             {state.users.map(user => {
                 return(
-                  <UserComp key={user.id} user={user}/>
+                  <UserComp key={user._id} user={user}/>
                 )
               })}
           </Grid>

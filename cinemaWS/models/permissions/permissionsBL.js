@@ -78,7 +78,7 @@ exports.updatePermission = async function (id, permissionObj) {
     if(permissions.length > 0 && permissionObj){
         let index = permissions.findIndex(perm => perm._id == id);
         if(index > -1){
-            permissions[index] = {_id:id,permissionObj};
+            permissions[index] = {_id:id,permissions:permissionObj};
             permissionsData = {...permissionsData,usersPermissions:permissions};
             return await permissionDal.writeFile(permissionsData);
         }

@@ -13,7 +13,7 @@ import EditIcon from '@material-ui/icons/Edit';
 import DeleteIcon from '@material-ui/icons/Delete';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import pellet from '../../Utils/pellet';
-
+import utils from '../../Utils/utils';
 
 
 const useStyles = makeStyles((theme) => ({
@@ -51,19 +51,24 @@ function UserComp(props) {
   const history = useHistory();
   const classes = useStyles();
   const [expanded, setExpanded] = React.useState(false);
+  const {_id} = props.user;
 
   const handleExpandClick = () => {
     setExpanded(!expanded);
   };
 
   const showEditUserForm = () => {
-    dispatch({type:"EDIT",payload:"user"});
     dispatch({type:"EDIT_USER" ,payload:props.user});
-    history.push(`/updateUser/${props.user.id}`)
+    history.push(`/updateUser/${_id}`)
   }
 
-  const deleteUser = () => {
-      dispatch({type:"DELETE_USER" , payload:props.user.id})
+  const deleteUser = async () => {
+      let deleteUserById = await utils.deleteUser(_id);
+      console.log(deleteUserById)
+      if(deleteUserById.isSuccess){
+          let users = state.users.filter(u => u._id !== _id);
+          await dispatch({type:"SET_USERS", payload:users});
+      } else console.log(deleteUserById.data.msg);
   }
 
   let permissions = "";

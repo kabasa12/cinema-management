@@ -128,7 +128,7 @@ const addMovie = function (movieObj) {
 
 const changeMovie = function (id, movieObj) {
     return new Promise((resolve, reject) => {
-        Movie.findByIdAndUpdate(id,{...movieObj}, 
+        Movie.findByIdAndUpdate(id,{...movieObj},{new: true},
             function (err) {
                 if (err) {
                     reject(err);
