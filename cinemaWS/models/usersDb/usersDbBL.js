@@ -27,11 +27,9 @@ const login = async (req, resp) => {
                 let userDetails = await axios.get('http://localhost:8000/api/users/' + user._id);
                 
                 try{
-                    // console.log("the refresh token = ")
-                    // let token = {token:refreshToken}
-                    // console.log(token)
-                    let auth = await AuthBL.createToken({token:refreshToken});
-                    console.log(auth)
+ 
+                    await AuthBL.createToken({token:refreshToken});
+
                     resp.cookie('access-token', accessToken, { maxAge: (60 * 30 * 24 * 7), httpOnly: true, sameSite: true});
                     resp.cookie('refresh-token', refreshToken, { maxAge: (60 * 60 * 24 * 7), httpOnly: true, sameSite: true });
                     
@@ -58,6 +56,31 @@ const login = async (req, resp) => {
             msg: 'User Not exists',
             status: 3
         });
+    }
+}
+
+const logOut = async (req,resp) => {
+    const cookies = req.cookies;
+
+    if (!cookies['refresh-token'] && !cookies['access-token'])
+        return resp.status(400).json({
+            isSuccess: false,
+            msg: 'Token Not exists in cookies'
+        });
+
+    try {
+        let logout = await AuthBL.removeToken(cookies['refresh-token']);
+        if(logout.isSuccess) {
+            resp.clearCookie('refresh-token', {sameSite: true}).clearCookie('access-token', {sameSite: true}).status(200).json({
+                isSuccess:true,
+                data:{msg:"Token removed", _id:logout._id}
+            })     
+        }
+    } catch(err) {
+        return resp.status(500).json({
+            isSuccess: false,
+            data:{msg:"Error logout - Please try again later"}
+        }); 
     }
 }
 
@@ -373,7 +396,14 @@ const generateToken = async (user) => {
     let resp = await UsersBL.getUserById(user._id);
     let userTimeOut = resp.sessionTimeOut;
 
-    return jwt.sign({_id:user._id}, process.env.ACCESS_TOKEN_SECRET, { expiresIn: userTimeOut });
+    return jwt.sign({_id:user._id}, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '3m' });
 }
 
-module.exports = {deleteUser,getUserById,updateUser,addUser,getAllUsers,createAccount,login}
+module.exports = {getUserDbById,
+                  deleteUser,
+                  getUserById,
+                  updateUser,
+                  addUser,
+                  getAllUsers,
+                  createAccount,
+                  login,logOut}

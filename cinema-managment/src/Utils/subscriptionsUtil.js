@@ -21,17 +21,23 @@ const getSubscriptionByMovieId = async (movieId) => {
 }
 
 const updateSubscription = async (subscriptionId,subscriptionObj) => {
-    let resp = await axios.put(`http://localhost:8000/api/subscriptions/${subscriptionId}`,subscriptionObj);
+    let resp = await axios.put(`http://localhost:8000/api/subscriptions/${subscriptionId}`,subscriptionObj,
+    { withCredentials: true,
+        credentials: 'include'});
     return resp.data;
 }
 
 const deleteSubscription = async (subscriptionId) => {
-    let resp = await axios.delete(`http://localhost:8000/api/subscriptions/${subscriptionId}`);
+    let resp = await axios.delete(`http://localhost:8000/api/subscriptions/${subscriptionId}`,
+    { withCredentials: true,
+        credentials: 'include'});
     return resp.data;
 }
 
 const addSubscription = async (subscriptionObj) => {
-    let resp = await axios.post(`http://localhost:8000/api/subscriptions`,subscriptionObj);
+    let resp = await axios.post(`http://localhost:8000/api/subscriptions`,subscriptionObj,
+    { withCredentials: true,
+        credentials: 'include'});
     return resp.data;
 }
 

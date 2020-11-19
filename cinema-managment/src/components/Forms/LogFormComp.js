@@ -1,6 +1,6 @@
 import React,{useState,useContext} from 'react'
 import Context from '../../context/context';
-import { useHistory } from 'react-router-dom';
+
 import clsx from 'clsx';
 import { makeStyles } from '@material-ui/core/styles';
 import {  Container, CssBaseline, TextField, Button, Typography } from '@material-ui/core';
@@ -46,7 +46,7 @@ const useStyles = makeStyles((theme) => ({
 const LogFormComp = (props) => {
     const [state] = useContext(Context);
     const classes = useStyles();
-    const history = useHistory();
+
 
     const [inputs, setInputs] = useState({userName:"",
                                           password:""
@@ -64,7 +64,6 @@ const LogFormComp = (props) => {
             case "Login":
                 props.handleLogin(inputs.userName,inputs.password);
                 setInputs({userName:"",password:""});
-                history.push("/movies");
                 break;
             case "Logout":
                 props.handleLogout();

@@ -1,15 +1,14 @@
 const AuthDb = require('./authSchema');
 
-exports.getTokenByName = async (req,resp) => {
+exports.getTokenByName = async (tokenObj) => {
     try {
-        let token = req.body;//replace from cookie
-        let data = await getToken(token);
-        return resp.status(200).json({
+        let data = await getToken(tokenObj);
+        return ({
             isSuccess:true,
             data:data
         })
     } catch(err) {
-        return resp.status(500).json({
+        return ({
             isSuccess: false,
             msg: 'Error fetching token',
             error: err
@@ -19,7 +18,7 @@ exports.getTokenByName = async (req,resp) => {
 
 exports.createToken = async (tokenObj) => {
     try {
-        //let token = req.body;//replace from cookie
+
         let data = await addToken(tokenObj);
         return ({
             isSuccess:true,
@@ -34,19 +33,18 @@ exports.createToken = async (tokenObj) => {
     }
 }
 
-exports.removeToken = async (req, resp) => {
+exports.removeToken = async (token) => {
     try {
-        let token = req.params.token;//replace from cookie
         let tokenData = await getToken({token:token});
         console.log(token)
         console.log(tokenData)
         let data = await deleteToken(tokenData._id)
-        return resp.status(200).json({ 
+        return ({ 
             isSuccess: true, 
             data:data});
     }
     catch (err) {
-        return resp.status(500).json({
+        return ({
             isSuccess: false,
             msg: 'Error deleting Token',
             error: err

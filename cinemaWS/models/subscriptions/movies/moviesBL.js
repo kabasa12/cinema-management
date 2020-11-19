@@ -4,9 +4,6 @@ const moviesDal = require('../../../dals/subscriptions/movies/moviesDal')
 
 exports.getAllMovies = async (req, resp) => {
     try {
-        // const cookies = req.cookies;
-        // console.log(cookies['access-token'])
-        // console.log(cookies['refresh-token'])
         let data = await allMovies();
         return resp.status(200).json({ 
             isSuccess: true,

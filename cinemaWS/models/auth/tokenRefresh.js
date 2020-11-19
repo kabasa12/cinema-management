@@ -2,15 +2,17 @@ const jwt = require('jsonwebtoken')
 const AuthBL = require('./authBL')
 
 exports.tokenRefresh = async (req, res, tokenObj) => {
-    try {
+    try {console.log("refresh token")
         let token = await AuthBL.getToken(tokenObj);
+
         if (token == null) throw 403
 
         jwt.verify(token, process.env.REFRESH_TOKEN_SECRET, (err, user) => {
             const _user = {
                 _id: user._id,
             }
-            req.cookies.token = jwt.sign(_user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '30m' });
+            //console.log(user)
+            req.cookies.token = jwt.sign(_user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '3m' });
             return _user
         });
 

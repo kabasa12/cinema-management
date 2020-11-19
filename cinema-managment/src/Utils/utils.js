@@ -11,24 +11,37 @@ const loginUser = async (userName,password) => {
     return resp.data
 }
 
+const logOutUser = async () => {
+    let resp = await axios.delete('http://localhost:8000/api/users/logout/remove',
+    { withCredentials: true,
+        credentials: 'include'});
+    return resp.data;
+}
+
 const getUsers = async () => {
     let resp = await axios.get('http://localhost:8000/api/users');
     return resp.data;
 }
 
 const addUser = async (userObj) => {
-    let resp = await axios.post('http://localhost:8000/api/users',userObj);
+    let resp = await axios.post('http://localhost:8000/api/users',userObj,
+    { withCredentials: true,
+        credentials: 'include'});
     return resp.data;
 }
 
 const updateUser = async (userId,userObj) => {
-    let resp = await axios.put(`http://localhost:8000/api/users/${userId}`,userObj);
+    let resp = await axios.put(`http://localhost:8000/api/users/${userId}`,userObj,
+    { withCredentials: true,
+        credentials: 'include'});
     return resp.data;
 }
 
 const deleteUser = async (userId) => {
-    let resp = await axios.delete(`http://localhost:8000/api/users/${userId}`);
+    let resp = await axios.delete(`http://localhost:8000/api/users/${userId}`,
+    { withCredentials: true,
+        credentials: 'include'});
     return resp.data;
 }
 
-export default {loginUser,getUsers,addUser,updateUser,deleteUser}
+export default {loginUser,getUsers,addUser,updateUser,deleteUser,logOutUser}
