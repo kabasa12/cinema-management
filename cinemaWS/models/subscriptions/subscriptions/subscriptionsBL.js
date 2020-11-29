@@ -11,15 +11,15 @@ exports.getAllSubscriptions = async (req, resp) => {
                 isSuccess: true,
                 data:data});
         } else {
-            return resp.status(201).json({ 
-                isSuccess: true,
+            return resp.status(203).json({ 
+                isSuccess: false,
                 data:{msg:"Couldn't find subscriptions"}});
         }
     }
     catch (err) {
         return resp.status(500).json({
             isSuccess: false,
-            msg: 'Error cinemaWS - fetching all members',
+            data:{msg: 'Error cinemaWS - fetching all members'},
             error: err
         });
     }
@@ -28,8 +28,7 @@ exports.getAllSubscriptions = async (req, resp) => {
 exports.getSubscriptionById = async (req, resp) => {
     try {
         let id = req.params.id
-        let data = await subscriptionById(id)
-        
+        let data = await subscriptionById(id)        
         if(data){
             return resp.status(200).json({ 
                 isSuccess: true,
@@ -43,7 +42,7 @@ exports.getSubscriptionById = async (req, resp) => {
     catch (err) {
         return resp.status(500).json({
             isSuccess: false,
-            msg: 'Error cinemaWS - fetching subscription by id',
+            data:{msg: 'Error cinemaWS - fetching subscription by id'},
             error: err
         });
     }
@@ -52,9 +51,8 @@ exports.getSubscriptionById = async (req, resp) => {
 exports.getSubscriptionByMemberId = async (req, resp) => {
     try {
         let memberId = req.params.id
-        let data = await subscriptionByMemberId(memberId)
-        
-        if(data != -1){
+        let data = await subscriptionByMemberId(memberId)  
+        if(data){
             return resp.status(200).json({ 
                 isSuccess: true,
                 data:data});
@@ -67,7 +65,7 @@ exports.getSubscriptionByMemberId = async (req, resp) => {
     catch (err) {
         return resp.status(500).json({
             isSuccess: false,
-            msg: 'Error cinemaWS - fetching subscription by member id',
+            data:{msg: 'Error cinemaWS - fetching subscription by member id'},
             error: err
         });
     }
@@ -91,7 +89,7 @@ exports.getSubscriptionByMovieId = async (req, resp) => {
     catch (err) {
         return resp.status(500).json({
             isSuccess: false,
-            msg: 'Error cinemaWS - fetching subscription by movie id',
+            data:{msg: 'Error cinemaWS - fetching subscription by movie id'},
             error: err
         });
     }
@@ -100,21 +98,14 @@ exports.getSubscriptionByMovieId = async (req, resp) => {
 exports.createSubscription =  async (req, resp) => {
     try {
         let data = await addSubscription(req.body);
-        if (data !== null) {
-            return resp.status(200).json({ 
-                isSuccess: true, 
-                data:data});
-        } else {
-            return resp.status(203).json({ 
-                isSuccess: false, 
-                data:{msg:"Couldn't add movie subscriptions for member"}});
-        }
-        
+        return resp.status(200).json({ 
+            isSuccess: data.isSuccess,
+            data:data.data});
     }
     catch (err) {
         return resp.status(500).json({
             isSuccess: false,
-            msg: 'Error cinemaWS - creating new subscription',
+            data:{msg: 'Error cinemaWS - creating new subscription'},
             error: err
         });
     }
@@ -124,21 +115,15 @@ exports.updateSubscription = async (req, resp) => {
     try {
         let id = req.params.id;
         let data = await changeSubscription(id,req.body)
-        if (data !== null) {
-            return resp.status(200).json({ 
-                isSuccess: true, 
-                data:data});
-        } else {
-            return resp.status(203).json({ 
-                isSuccess: false, 
-                data:{msg:"Couldn't update subscription for member"}});
-        }
+        return resp.status(200).json({ 
+            isSuccess: data.isSuccess,
+            data:data.data});
         
     }
     catch (err) {
         return resp.status(500).json({
             isSuccess: false,
-            msg: 'Error cinemaWS - creating new subscription',
+            data:{msg: 'Error cinemaWS - creating new subscription'},
             error: err
         });
     }
@@ -149,13 +134,13 @@ exports.removeSubscription = async (req, resp) => {
         let id = req.params.id;
         let data = await deleteSubscription(id)
         return resp.status(200).json({ 
-            isSuccess: true, 
-            data:data});
+            isSuccess: data.isSuccess,
+            data:data.data});
     }
     catch (err) {
         return resp.status(500).json({
             isSuccess: false,
-            msg: 'Error cinemaWS - creating new subscription',
+            data:{msg: 'Error cinemaWS - creating new subscription'},
             error: err
         });
     }
@@ -165,9 +150,12 @@ exports.removeSubscription = async (req, resp) => {
 
 const allSubscriptions = async () => {
     let subscriptionsData = await subscriptionsDal.getAllSubscriptions();
+    if(!subscriptionsData.isSuccess) return null;
+
     let allSubscriptions = subscriptionsData.data
     let allMembers = await membersDal.getAllMembers();
-    
+    if(!allMembers.isSuccess) return null;
+
     let subscriptions = await Promise.all(allSubscriptions.map(async subsc => {
         let member = await membersDal.getMembereById(subsc.memberId);
         let movies = await Promise.all(subsc.movies.map( async movie => {
@@ -212,9 +200,12 @@ const allSubscriptions = async () => {
 
 const subscriptionById = async (id) => {
     let subscriptionData = await subscriptionsDal.getSubscriptionById(id);
-    let subscription = subscriptionData.data
+    if (!subscriptionData.isSuccess) return null;
 
+    let subscription = subscriptionData.data
     let member = await membersDal.getMembereById(subscription.memberId);
+    if (!member.isSuccess) return null;
+
     let resSubscription = {_id:id,
                             memberId:subscription.memberId,
                             member:member.data.userName,
@@ -231,28 +222,31 @@ const subscriptionById = async (id) => {
 
 const subscriptionByMemberId = async (memberId) => {
     let subscriptionData = await subscriptionsDal.getSubscriptionByMemberId(memberId);
+    if(!subscriptionData.isSuccess) return null;
+
     let subscription = subscriptionData.data
     let member = await membersDal.getMembereById(memberId);
-    if(subscriptionData.isSuccess) {
-        let resSubscription = {_id:subscription._id,
-                                memberId:subscription.memberId,
-                                member:member.data.userName,
-                                email:member.data.email
-                                }                     
-        let movies = await Promise.all(subscription.movies.map( async movie => {
-            let movieData = await moviesDal.getMovieById(movie.movieId);
-            return ({movieId:movie.movieId,name:movieData.data.name,watchDate:movie.watchDate})
-        }))
-        resSubscription = {...resSubscription,movies}
+    if(!member.isSuccess) return null;
 
-        return resSubscription;
-    } else return -1
+    let resSubscription = {_id:subscription._id,
+                            memberId:subscription.memberId,
+                            member:member.data.userName,
+                            email:member.data.email
+                            }                     
+    let movies = await Promise.all(subscription.movies.map( async movie => {
+        let movieData = await moviesDal.getMovieById(movie.movieId);
+        return ({movieId:movie.movieId,name:movieData.data.name,watchDate:movie.watchDate})
+    }))
+    resSubscription = {...resSubscription,movies}
+
+    return resSubscription;
 }
 
 const subscriptionByMovieId = async (movieId) => {
     let subscriptionData = await subscriptionsDal.getSubscriptionByMovieId(movieId);
+    if(!subscriptionData.isSuccess) return null;
+
     let allSubscriptions = subscriptionData.data
- 
     let subscriptions = await Promise.all(allSubscriptions.map(async subsc => {
         let member = await membersDal.getMembereById(subsc.memberId);
         let movies = await Promise.all(subsc.movies.map( async movie => {
@@ -284,15 +278,15 @@ const subscriptionByMovieId = async (movieId) => {
 
 const addSubscription = async (subscriptionObj) => {
     let resp = await subscriptionsDal.addSubscription(subscriptionObj);
-    return resp.data;
+    return resp;
 }
 
 const changeSubscription = async (id,subscriptionObj) => {
     let resp = await subscriptionsDal.updateSubscription(id,subscriptionObj);
-    return resp.data
+    return resp;
 }
 
 const deleteSubscription = async (id) => {
     let resp = await subscriptionsDal.deleteSubscription(id);
-    return resp.data
+    return resp;
 }

@@ -24,7 +24,8 @@ const useStyles = makeStyles((theme) => ({
   },
   header:{
     fontFamily:"Jolly Lodger",
-    letterSpacing:10
+    letterSpacing:10,
+    paddingTop: "15px"
   },
   btns:{
     fontFamily:"Jolly Lodger",
@@ -40,17 +41,40 @@ function UsersComp() {
   const classes = useStyles();
 
   useEffect(() => {
-
-    const getUsers= async () => {
-      let users = await utils.getUsers();
-      if (users.data.length > 0) {
-        await dispatch({type:"SET_USERS", payload:users.data});
-      }
+    
+    if(!state.isLogin){
+      userInfo();
     }
+
     getUsers();
 
     return () => getUsers();
   },[])
+
+  const userInfo = async () => {
+    try {
+      let user = await utils.getUserInfo();
+      
+      if(user.isSuccess)
+        await dispatch({type:"LOGIN",payload:user});
+
+    } catch(err) {
+      await dispatch({type:"LOGOUT"}); 
+      history.push('/');
+    }
+  }
+
+  const getUsers= async () => {
+    try {
+      let users = await utils.getUsers();
+      if (users.data.length > 0) {
+        await dispatch({type:"SET_USERS", payload:users.data});
+      }
+    } catch(err) {
+      await dispatch({type:"LOGOUT"}); 
+      history.push('/');
+    }   
+  }
 
   const showAllUsers = () => {
     history.push("/users");
@@ -62,7 +86,7 @@ function UsersComp() {
   }
 
 
-  return state.isLogin? (
+  return (
     <div>
       <CssBaseline />
       <main>
@@ -105,7 +129,7 @@ function UsersComp() {
         </Container>
       </main>
     </div>
-  ) : <div></div> ;
+  );
 }
 
 export default UsersComp;

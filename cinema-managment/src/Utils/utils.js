@@ -11,6 +11,17 @@ const loginUser = async (userName,password) => {
     return resp.data
 }
 
+const createAccount = async (userName,password) => {
+    let resp = await axios.post('http://localhost:8000/api/users/createAcc',{userName,password},
+    { withCredentials: true,
+        credentials: 'include',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        }});
+    return resp.data;
+}
+
 const logOutUser = async () => {
     let resp = await axios.delete('http://localhost:8000/api/users/logout/remove',
     { withCredentials: true,
@@ -18,8 +29,17 @@ const logOutUser = async () => {
     return resp.data;
 }
 
+const getUserInfo = async () => {
+    let resp = await axios.get('http://localhost:8000/api/users/info/data',
+    { withCredentials: true,
+        credentials: 'include'});
+    return resp.data;
+}
+
 const getUsers = async () => {
-    let resp = await axios.get('http://localhost:8000/api/users');
+    let resp = await axios.get('http://localhost:8000/api/users',
+    { withCredentials: true,
+        credentials: 'include'});
     return resp.data;
 }
 
@@ -44,4 +64,5 @@ const deleteUser = async (userId) => {
     return resp.data;
 }
 
-export default {loginUser,getUsers,addUser,updateUser,deleteUser,logOutUser}
+export default {loginUser,getUsers,addUser,updateUser,
+                deleteUser,logOutUser,createAccount,getUserInfo}

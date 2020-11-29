@@ -7,6 +7,7 @@ import MembComp from './MembComp';
 import 'fontsource-jolly-lodger/index.css';
 import pellet from '../../Utils/pellet';
 import subscriptionsUtil from '../../Utils/subscriptionsUtil';
+import utils from '../../Utils/utils';
 
 const useStyles = makeStyles((theme) => ({
   icon: {
@@ -24,7 +25,8 @@ const useStyles = makeStyles((theme) => ({
   },
   header:{
     fontFamily:"Jolly Lodger",
-    letterSpacing:10
+    letterSpacing:10,
+    paddingTop: "15px"
   },
   btns:{
     fontFamily:"Jolly Lodger",
@@ -42,19 +44,9 @@ function MembersComp () {
   let {memberId} = useParams();
 
   useEffect(() => {
-    
-    const getAllSubscriptions = async () => {
-      let subscriptions = await subscriptionsUtil.getSubscriptions()
-      if (subscriptions.length > 0) {
-        dispatch({type:"SET_SUBSCRIPTIONS", payload:subscriptions});
-      }
-    }
 
-    const getSubscriptionByMember = async (memberId) => {
-      let suscriptionMember = await subscriptionsUtil.getSubscriptionByMemberId(memberId)
-      if (suscriptionMember.isSuccess) {
-        dispatch({type:"SET_CURR_SUBSCRIPTION", payload:suscriptionMember.data});
-      }
+    if(!state.isLogin){
+      userInfo();
     }
 
     if(memberId){
@@ -73,6 +65,43 @@ function MembersComp () {
     
   },[memberId])
 
+  const userInfo = async () => {
+    try {
+      let user = await utils.getUserInfo();
+      
+      if(user.isSuccess)
+        await dispatch({type:"LOGIN",payload:user});
+
+    } catch(err) {
+      await dispatch({type:"LOGOUT"}); 
+      history.push('/');
+    }
+  }
+
+  const getAllSubscriptions = async () => {
+    try {
+      let subscriptions = await subscriptionsUtil.getSubscriptions()
+      if (subscriptions.length > 0) {
+        dispatch({type:"SET_SUBSCRIPTIONS", payload:subscriptions});
+      }
+    } catch(err) {
+      await dispatch({type:"LOGOUT"}); 
+      history.push('/');
+    } 
+  }
+
+  const getSubscriptionByMember = async (memberId) => {
+    try {
+      let suscriptionMember = await subscriptionsUtil.getSubscriptionByMemberId(memberId)
+      if (suscriptionMember.isSuccess) {
+        dispatch({type:"SET_CURR_SUBSCRIPTION", payload:suscriptionMember.data});
+      }
+    } catch(err) {
+      await dispatch({type:"LOGOUT"}); 
+      history.push('/');
+    }
+  }
+
   const showAllMembers = () => {
     history.push("/members");
   }
@@ -82,7 +111,7 @@ function MembersComp () {
     history.push("/addMember")
   }
   
-  return state.isLogin? (
+  return (
         <div>
           <CssBaseline />
           <main>
@@ -132,7 +161,7 @@ function MembersComp () {
             </Container>
           </main>
     </div>
-  ): <div></div>;
+  );
 }
 
 export default MembersComp;

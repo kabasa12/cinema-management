@@ -126,21 +126,10 @@ function MemberComp (props) {
                   </List>
               </CardContent>
               {props.memberId ?
-                <CardActions>
+                <CardActions disableSpacing>
                   <Button size="small" color="secondary" onClick={goBack}>
                     Back To Movies
                   </Button>
-                  {/* <IconButton
-                    className={clsx(classes.expand, {
-                      [classes.expandOpen]: expanded,
-                    })}
-                    onClick={handleExpandClick}
-                    aria-expanded={expanded}
-                    aria-label="show more">
-                    <Tooltip title="Add Subscription">
-                      <VideoCallIcon style={{color:`${pellet.palette.default.main}`}}/>
-                    </Tooltip>
-                  </IconButton>. */}
                 </CardActions>
                 :
                 <CardActions disableSpacing>

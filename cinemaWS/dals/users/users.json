@@ -1,1 +1,32 @@
-{"users":[{"_id":"5fa268d87375aedfdc08b3e2","firstName":"yaniv","lastName":"kabesa","createdDate":"2020-01-04","sessionTimeOut":60},{"_id":"5fa4101e7375aedfdc098c2d","firstName":"yael","lastName":"aharon","createdDate":"2020-09-16","sessionTimeOut":"1800"},{"_id":"5faa72962d60d26ec45112fc","firstName":"dani","lastName":"aluf-sade","createdDate":"2020-07-12","sessionTimeOut":86400}]}
+{
+    "users": [
+        {
+            "_id": "5fa268d87375aedfdc08b3e2",
+            "firstName": "yaniv",
+            "lastName": "kabesa",
+            "createdDate": "2020-01-04",
+            "sessionTimeOut": "60"
+        },
+        {
+            "_id": "5fa4101e7375aedfdc098c2d",
+            "firstName": "yael",
+            "lastName": "aharon",
+            "createdDate": "2020-09-16",
+            "sessionTimeOut": "20"
+        },
+        {
+            "_id": "5fb946fa9b59373a70bb2a11",
+            "firstName": "daniel",
+            "lastName": "aharony",
+            "createdDate": "2020-11-21",
+            "sessionTimeOut": "25"
+        },
+        {
+            "_id": "5fb9757b46acfe1bf82e0420",
+            "firstName": "bb",
+            "lastName": "aa",
+            "createdDate": "2020-11-21",
+            "sessionTimeOut": "25"
+        }
+    ]
+}

@@ -1,24 +1,30 @@
 import axios from 'axios';
 
-const getMovieSubsc = async (movieId) => {
-    let resp = await axios.get(`http://localhost:8000/api/subscriptions/movie/${movieId}`);
-    return resp.data.data
-}
-
 const getSubscriptions = async () => {
-    let resp = await axios.get(`http://localhost:8000/api/subscriptions`);
+    let resp = await axios.get(`http://localhost:8000/api/subscriptions`,
+    { withCredentials: true,
+        credentials: 'include'});
     return resp.data.data;
 }
 
 const getSubscriptionByMemberId = async (memberId) => {
-    let resp = await axios.get(`http://localhost:8000/api/subscriptions/member/${memberId}`);
+    let resp = await axios.get(`http://localhost:8000/api/subscriptions/member/${memberId}`,
+    { withCredentials: true,
+        credentials: 'include'});
     return resp.data;
 }
 
 const getSubscriptionByMovieId = async (movieId) => {
-    let resp = await axios.get(`http://localhost:8000/api/subscriptions/movie/${movieId}`);
+    let resp = await axios.get(`http://localhost:8000/api/subscriptions/movie/${movieId}`,
+    { withCredentials: true,
+        credentials: 'include'});
     return resp.data;
 }
+
+// const getMovieSubsc = async (movieId) => {
+//     let resp = await axios.get(`http://localhost:8000/api/subscriptions/movie/${movieId}`);
+//     return resp.data.data
+// }
 
 const updateSubscription = async (subscriptionId,subscriptionObj) => {
     let resp = await axios.put(`http://localhost:8000/api/subscriptions/${subscriptionId}`,subscriptionObj,
@@ -41,6 +47,5 @@ const addSubscription = async (subscriptionObj) => {
     return resp.data;
 }
 
-export default {getMovieSubsc, getSubscriptions,
-    getSubscriptionByMovieId,deleteSubscription,
-    updateSubscription,getSubscriptionByMemberId,addSubscription}
+export default {getSubscriptions,getSubscriptionByMovieId,deleteSubscription,
+                updateSubscription,getSubscriptionByMemberId,addSubscription}

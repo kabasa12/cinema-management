@@ -36,8 +36,6 @@ exports.createToken = async (tokenObj) => {
 exports.removeToken = async (token) => {
     try {
         let tokenData = await getToken({token:token});
-        console.log(token)
-        console.log(tokenData)
         let data = await deleteToken(tokenData._id)
         return ({ 
             isSuccess: true, 

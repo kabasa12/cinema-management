@@ -3,14 +3,18 @@ const Member = require('./membersSchema');
 exports.getAllMembers = async (req, resp) =>{
     try {
         let data = await allMembers()
-        return resp.status(200).json({ 
-            isSuccess: true, 
-            data:data});
+        if(data !== null)
+            return resp.status(200).json({ 
+                isSuccess: true, 
+                data:data});
+        return resp.status(203).json({ 
+            isSuccess: false, 
+            data:{msg:"Error - Members not found"}});
     }
     catch (err) {
         return resp.status(500).json({
             isSuccess: false,
-            msg: 'Error fetching all members',
+            data:{msg: 'Error fetching all members'},
             error: err
         });
     }
@@ -20,14 +24,18 @@ exports.getMemberById = async (req, resp) => {
     try {
         let id = req.params.id;
         let data = await memberById(id)
-        return resp.status(200).json({ 
-            isSuccess: true, 
-            data:data});
+        if(data !== null)
+            return resp.status(200).json({ 
+                isSuccess: true, 
+                data:data});
+        return resp.status(203).json({ 
+            isSuccess: false, 
+            data:{msg:"Error - Member not found"}});
     }
     catch (err) {
         return resp.status(500).json({
             isSuccess: false,
-            msg: 'Error fetching member by id',
+            data:{msg: 'Error fetching member by id'},
             error: err
         });
     }
@@ -36,14 +44,18 @@ exports.getMemberById = async (req, resp) => {
 exports.createMember = async (req, resp) => {
     try {
         let data = await addMember(req.body)
-        return resp.status(200).json({ 
-            isSuccess: true, 
-            data:data});
+        if(data !== null)
+            return resp.status(200).json({ 
+                isSuccess: true, 
+                data:data});
+        return resp.status(203).json({ 
+            isSuccess: false, 
+            data:{msg:"Error - Member not created"}});
     }
     catch (err) {
         return resp.status(500).json({
             isSuccess: false,
-            msg: 'Error creating new member',
+            data:{msg: 'Error creating new member'},
             error: err
         });
     }
@@ -53,14 +65,18 @@ exports.updateMember = async (req, resp) => {
     try {
         let id = req.params.id;
         let data = await changeMember(id,req.body)
-        return resp.status(200).json({ 
-            isSuccess: true, 
-            data:data});
+        if(data !== null)
+            return resp.status(200).json({ 
+                isSuccess: true, 
+                data:data});
+        return resp.status(203).json({ 
+            isSuccess: false, 
+            data:{msg:"Error - Member not updated"}});
     }
     catch (err) {
         return resp.status(500).json({
             isSuccess: false,
-            msg: 'Error updating member',
+            data:{msg: 'Error updating member'},
             error: err
         });
     }
@@ -70,9 +86,13 @@ exports.removeMember = async (req, resp) => {
     try {
         let id = req.params.id;
         let data = await deleteMember(id)
-        return resp.status(200).json({ 
-            isSuccess: true, 
-            data:data});
+        if(data !== null)
+            return resp.status(200).json({ 
+                isSuccess: true, 
+                data:data});
+        return resp.status(203).json({ 
+            isSuccess: false, 
+            data:{msg:"Error - Member not deleted"}});
     }
     catch (err) {
         return resp.status(500).json({
@@ -114,12 +134,12 @@ const memberById = function (id) {
 const addMember = function (memberObj) {
     return new Promise((resolve, reject) => {
         const member = new Member({...memberObj});
-        member.save(function (err) {
+        member.save(function (err,res) {
             if (err) {
                 reject(err);
             }
             else {
-                resolve({msg:'Member Created',_id:member._id});
+                resolve(res);
             }
         })
     })
@@ -128,12 +148,12 @@ const addMember = function (memberObj) {
 const changeMember = function (id, memberObj) {
     return new Promise((resolve, reject) => {
         Member.findByIdAndUpdate(id,{...memberObj},{new: true},
-            function (err) {
+            function (err,res) {
                 if (err) {
                     reject(err);
                 }
                 else {
-                    resolve({msg:'Member Updated',_id:id});
+                    resolve(res);
                 }
             })
     })
@@ -141,12 +161,12 @@ const changeMember = function (id, memberObj) {
 
 const deleteMember = function (id) {
     return new Promise((resolve, reject) => {
-        Member.findByIdAndDelete(id, function (err) {
+        Member.findByIdAndDelete(id, function (err,res) {
             if (err) {
                 reject(err);
             }
             else {
-                resolve({msg:'Member Deleted',_id:id});
+                resolve(res);
             }
         })
 

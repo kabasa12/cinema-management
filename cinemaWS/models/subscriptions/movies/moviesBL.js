@@ -6,13 +6,13 @@ exports.getAllMovies = async (req, resp) => {
     try {
         let data = await allMovies();
         return resp.status(200).json({ 
-            isSuccess: true,
-            data:data});
+            isSuccess: data.isSuccess,
+            data:data.data});
     }
     catch (err) {
         return resp.status(500).json({
             isSuccess: false,
-            msg: 'Error cinemaWS - fetching all movies',
+            data:{msg: 'Error cinemaWS - fetching all movies'},
             error: err
         });
     }
@@ -23,13 +23,13 @@ exports.getMovieById = async (req, resp) => {
         let id = req.params.id
         let data = await movieById(id)
         return resp.status(200).json({ 
-            isSuccess: true,
-            data:data});
+            isSuccess: data.isSuccess,
+            data:data.data});
     }
     catch (err) {
         return resp.status(500).json({
             isSuccess: false,
-            msg: 'Error cinemaWS - fetching movie by id',
+            data:{msg: 'Error cinemaWS - fetching movie by id'},
             error: err
         });
     }
@@ -39,13 +39,13 @@ exports.createMovie = async (req, resp) => {
     try {
         let data = await addMovie(req.body)
         return resp.status(200).json({ 
-            isSuccess: true, 
-            data:data});
+            isSuccess: data.isSuccess,
+            data:data.data});
     }
     catch (err) {
         return resp.status(500).json({
             isSuccess: false,
-            msg: 'Error cinemaWS - creating new movie',
+            data:{msg: 'Error cinemaWS - creating new movie'},
             error: err
         });
     }
@@ -56,13 +56,13 @@ exports.updateMovie = async (req, resp) => {
         let id = req.params.id;
         let data = await changeMovie(id,req.body);
         return resp.status(200).json({ 
-            isSuccess: true, 
-            data:data});
+            isSuccess: data.isSuccess,
+            data:data.data});
     }
     catch (err) {
         return resp.status(500).json({
             isSuccess: false,
-            msg: 'Error cinemaWS - updating movie',
+            data:{msg: 'Error cinemaWS - updating movie'},
             error: err
         });
     }
@@ -73,13 +73,13 @@ exports.removeMovie = async (req, resp) => {
         let id = req.params.id;
         let data = await deleteMovie(id)
         return resp.status(200).json({ 
-            isSuccess: true, 
-            data:data});
+            isSuccess: data.isSuccess,
+            data:data.data});
     }
     catch (err) {
         return resp.status(500).json({
             isSuccess: false,
-            msg: 'Error cinemaWS - deleting movie',
+            data:{msg: 'Error cinemaWS - deleting movie'},
             error: err
         });
     }
@@ -88,26 +88,26 @@ exports.removeMovie = async (req, resp) => {
 //--------------------------Db Functions-------------------------------------//
 
 const allMovies = async () => {
-    let allMovies = await moviesDal.getAllMovies();
-    return allMovies.data
+    let resp = await moviesDal.getAllMovies();
+    return resp
 }
 
 const movieById = async (id) => {
     let resp = await moviesDal.getMovieById(id);
-    return resp.data
+    return resp
 }
 
 const addMovie = async (movieObj) => {
     let resp = await moviesDal.addMovie(movieObj);
-    return resp.data
+    return resp
 }
 
 const changeMovie = async (id,movieObj) => {
     let resp = await moviesDal.updateMovie(id,movieObj);
-    return resp.data
+    return resp
 }
 
 const deleteMovie = async (id) => {
     let resp = await moviesDal.deleteMovie(id);
-    return resp.data
+    return resp
 }

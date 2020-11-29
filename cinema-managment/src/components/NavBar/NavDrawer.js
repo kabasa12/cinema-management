@@ -124,7 +124,7 @@ export default function MiniDrawer() {
               </IconButton>
               <Grid container>
               <Typography variant="h6" noWrap>
-                Movies Subscribe
+                Cinema Management
               </Typography>
               </Grid>
               <Grid container style={{justifyContent:"flex-end"}}>

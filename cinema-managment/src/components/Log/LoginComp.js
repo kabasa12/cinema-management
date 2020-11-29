@@ -1,19 +1,25 @@
-import React,{useContext} from 'react';
+import React,{useContext,useState} from 'react';
 import Context from '../../context/context';
-import { useHistory } from 'react-router-dom';
+import { useHistory,useLocation } from 'react-router-dom';
 import LogFormComp from '../Forms/LogFormComp';
 import utils from '../../Utils/utils';
 
 function LoginComp() {
-  const [state,dispatch] = useContext(Context)
+  const [state,dispatch] = useContext(Context);
   const history = useHistory();
+  const userNameProps = useLocation();
 
   const handleLogin = async (userName,password) => {
     let user = await utils.loginUser(userName,password)
-    if(user.data._id){
+
+    if(user.isSuccess){
       await dispatch({type:"LOGIN",payload:user});
       history.push("/movies");
-    } 
+    } else {
+      if(user.data.status == 1) {
+        history.push("/create",userName)
+      }
+    }
   }
 
   const handleLogout = async () => {
@@ -24,7 +30,7 @@ function LoginComp() {
 
   return !state.isLogin ? (
     <div>
-        <LogFormComp type="Login" handleLogin={handleLogin}/>
+        <LogFormComp type="Login" handleLogin={handleLogin} userName={userNameProps.state}/>
     </div>
   ) : (
     <div>

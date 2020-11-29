@@ -24,11 +24,13 @@ const useStyles = makeStyles((theme) => ({
     },
     header:{
         fontFamily:"Jolly Lodger",
-        letterSpacing:10
+        letterSpacing:10,
+        paddingTop: "15px"
       },
     headerLong:{
         fontFamily:"Jolly Lodger",
-        letterSpacing:5
+        letterSpacing:5,
+        paddingTop: "15px"
     },
     btnPrimary:{
         fontFamily:"Jolly Lodger",
@@ -61,6 +63,9 @@ const MemberFormComp = () => {
     let {memberId} = useParams(); 
 
     useEffect(() => {
+        if(!state.isLogin) 
+            history.push('/');
+        
         if(state.isEditMember){
             
             let inp = { userName:state.currentMember.member,
@@ -105,14 +110,14 @@ const MemberFormComp = () => {
         returnBack();           
     }
 
-    return state.isLogin? (
+    return (
             <Container component="div" maxWidth="xs">
                 <CssBaseline />
                 <div className={classes.paper}>
                     <Typography component="h1" variant="h5"
                                 className={state.isEditMember ? classes.headerLong : classes.header}>
                         {state.isEditMember ?
-                            "Edit Member - " + inputs.name :
+                            "Edit Member - " + inputs.userName :
                             "Add New Member"
                         }
                     </Typography>
@@ -171,7 +176,7 @@ const MemberFormComp = () => {
                     </form>
                 </div>
             </Container>    
-    ) : <div></div>;
+    )
 }
 
 export default MemberFormComp;

@@ -24,11 +24,13 @@ const useStyles = makeStyles((theme) => ({
     },
     header:{
         fontFamily:"Jolly Lodger",
-        letterSpacing:10
+        letterSpacing:10,
+        paddingTop: "15px"
       },
     headerLong:{
         fontFamily:"Jolly Lodger",
-        letterSpacing:5
+        letterSpacing:5,
+        paddingTop: "15px"
     },
     btnPrimary:{
         fontFamily:"Jolly Lodger",
@@ -62,6 +64,10 @@ const MovieFormComp = () => {
     let {movieId} = useParams(); 
 
     useEffect(() => {
+        
+        if(!state.isLogin) 
+            history.push('/');  
+            
         if(state.isEditMovie){
             
             let inp = { name:state.currentMovie.name,
@@ -122,7 +128,7 @@ const MovieFormComp = () => {
         returnBack();           
     }
 
-return state.isLogin? (
+return (
         <Container component="div" maxWidth="xs">
             <CssBaseline />
             <div className={classes.paper}>
@@ -198,7 +204,7 @@ return state.isLogin? (
             </div>
         </Container>
         
-    ) : <div></div>;
+    )
 }
 
 export default MovieFormComp;

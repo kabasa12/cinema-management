@@ -1,6 +1,6 @@
 import React,{useState,useEffect,useContext} from 'react';
 import Context from '../../context/context';
-import {useParams,useHistory} from 'react-router-dom'
+import {useParams,useHistory} from 'react-router-dom';
 import clsx from 'clsx';
 import { makeStyles } from '@material-ui/core/styles';
 import {Container,CssBaseline,TextField,Button,Typography,Divider} from '@material-ui/core';
@@ -27,11 +27,13 @@ const useStyles = makeStyles((theme) => ({
     },
     header:{
         fontFamily:"Jolly Lodger",
-        letterSpacing:10
+        letterSpacing:10,
+        paddingTop: "15px"
       },
     headerLong:{
         fontFamily:"Jolly Lodger",
-        letterSpacing:5
+        letterSpacing:5,
+        paddingTop: "15px"
       },
     btnPrimary:{
         fontFamily:"Jolly Lodger",
@@ -76,6 +78,9 @@ const UserFormComp = (props) => {
     let {userId} = useParams(); 
 
     useEffect(() => {
+        if(!state.isLogin) 
+            history.push('/');
+            
         if(state.isEditUser){
 
             let inp = { userName:state.editedUser.userName,
@@ -155,7 +160,7 @@ const UserFormComp = (props) => {
         returnBack();           
     }
 
-    return state.isLogin? (
+    return (
             <Container component="div" maxWidth="xs">
             <CssBaseline />
             <div className={classes.paper}>
@@ -304,7 +309,7 @@ const UserFormComp = (props) => {
                 </form>
             </div>
         </Container>
-    ) : <div></div>;
+    )
 }
 
 export default UserFormComp;

@@ -1,6 +1,5 @@
 const UsersDb = require('./usersDbSchema');
 const UsersBL = require('../users/usersBL');
-const AuthBL = require('../auth/authBL');
 const axios = require('axios')
 const PermissionBL = require('../permissions/permissionsBL')
 const saltRounds = 10;
@@ -17,22 +16,17 @@ const login = async (req, resp) => {
         let match = bcrypt.compareSync(userData.password, user.password);
         if (match) {
             if (userData.password == process.env.DEFAULT_PASSWORD) {
-                return resp.status(401).json({
+                return resp.status(203).json({
                     isSuccess: false,
                     data: { msg: "You need to Create Account with new password", status: 1 }
                 });
             } else {
                 let accessToken = await generateToken(user);
-                let refreshToken = jwt.sign({_id:user._id}, process.env.REFRESH_TOKEN_SECRET);
                 let userDetails = await axios.get('http://localhost:8000/api/users/' + user._id);
                 
-                try{
- 
-                    await AuthBL.createToken({token:refreshToken});
+                try{                  
+                    resp.cookie('access-token', accessToken, { maxAge: (60 * 5 * 24 * 7 ), httpOnly: true, sameSite: true});
 
-                    resp.cookie('access-token', accessToken, { maxAge: (60 * 30 * 24 * 7), httpOnly: true, sameSite: true});
-                    resp.cookie('refresh-token', refreshToken, { maxAge: (60 * 60 * 24 * 7), httpOnly: true, sameSite: true });
-                    
                     return resp.status(200).json({
                         isSuccess: true,
                         ...userDetails.data
@@ -53,7 +47,7 @@ const login = async (req, resp) => {
     } catch (err) {
         return resp.status(404).json({
             isSuccess: false,
-            msg: 'User Not exists',
+            data:{msg: 'User Not exists'},
             status: 3
         });
     }
@@ -61,21 +55,18 @@ const login = async (req, resp) => {
 
 const logOut = async (req,resp) => {
     const cookies = req.cookies;
-
-    if (!cookies['refresh-token'] && !cookies['access-token'])
+    
+    if (!cookies['access-token'])
         return resp.status(400).json({
             isSuccess: false,
-            msg: 'Token Not exists in cookies'
+            data:{msg: 'Token Not exists in cookies'}
         });
 
     try {
-        let logout = await AuthBL.removeToken(cookies['refresh-token']);
-        if(logout.isSuccess) {
-            resp.clearCookie('refresh-token', {sameSite: true}).clearCookie('access-token', {sameSite: true}).status(200).json({
-                isSuccess:true,
-                data:{msg:"Token removed", _id:logout._id}
-            })     
-        }
+        resp.clearCookie('access-token', {sameSite: true}).status(200).json({
+            isSuccess:true,
+            data:{msg:"Token removed"}
+        })    
     } catch(err) {
         return resp.status(500).json({
             isSuccess: false,
@@ -98,7 +89,7 @@ const createAccount = async (req, resp) => {
             if (!userDb._id) {
                 return resp.status(501).json({
                     isSuccess: false,
-                    msg: "Error update user password in Db"
+                    data:{msg: "Error update user password in Db"}
                 })
             } else {
                 return resp.status(200).json({
@@ -109,14 +100,45 @@ const createAccount = async (req, resp) => {
         } else {
             return resp.status(404).json({
                 isSuccess: false,
-                msg: 'User Not exists',
+                data:{msg: 'User Not exists'},
                 status: 3
             });
         }
     } catch (err) {
         return resp.status(500).json({
             isSuccess: false,
-            msg: "Error CinamaWs - creating account",
+            data:{msg: "Error CinamaWs - creating account"}
+        });
+    }
+}
+
+const getUserInfo = async (req,resp) => {
+    try {
+        let id = req.user._id;
+        let userData = await UsersBL.getUserById(id);
+        let userDbData = await getUserDbById(id);
+        let permissionData = await PermissionBL.getPermissionByUserId(id);
+        let msg = "Success";
+
+        if (permissionData.length > 0 && userData) {
+            return resp.status(200).json({
+                isSuccess: true,
+                data: { ...userData, userName: userDbData.userName,isAdmin:userDbData.isAdmin, permissions: permissionData }
+            });
+        } else {
+            msg = "Error - some users are lacking information in db files";
+            return resp.status(401).json({
+                isSuccess: false,
+                data: msg
+            });
+        }
+
+    }
+    catch (err) {
+        return resp.status(500).json({
+            isSuccess: false,
+            data:{msg: 'Error fetching userInfo by id'},
+            error: err
         });
     }
 }
@@ -158,7 +180,7 @@ const getAllUsers = async (req, resp) => {
     catch (err) {
         return resp.status(500).json({
             isSuccess: false,
-            msg: 'Error fetching all users',
+            data:{msg: 'Error fetching all users'},
             error: err
         });
     }
@@ -189,7 +211,7 @@ const getUserById = async (req, resp) => {
     catch (err) {
         return resp.status(500).json({
             isSuccess: false,
-            msg: 'Error fetching user by id',
+            data:{msg: 'Error fetching user by id'},
             error: err
         });
     }
@@ -206,10 +228,10 @@ const addUser = async (req, resp) => {
         }
 
         let userDbData = await addUserDb(userDbObj)
-        if (!userDbData._id) {
+        if (userDbData === null) {
             return resp.status(501).json({
                 isSuccess: false,
-                msg: "Error create new user in Db"
+                data:{msg: "Error create new user in Db"}
             })
         } else {
             let userData = await UsersBL.addUser({ _id: userDbData._id, ...req.body });
@@ -239,7 +261,7 @@ const addUser = async (req, resp) => {
     catch (err) {
         return resp.status(500).json({
             isSuccess: false,
-            msg: 'Error creating new user',
+            data:{msg: 'Error creating new user'},
             error: err
         });
     }
@@ -252,10 +274,10 @@ const updateUser = async (req, resp) => {
         let userDbObj = { userName: req.body.userName, password: userDbData.password }
         let userDb = await updateUserDb(id, userDbObj);
 
-        if (!userDb._id) {
+        if (userDb === null) {
             return resp.status(501).json({
                 isSuccess: false,
-                msg: "Error update user in Db"
+                data:{msg: "Error update user in Db"}
             })
         } else {
             let userData = await UsersBL.updateUser(id, req.body);
@@ -272,7 +294,7 @@ const updateUser = async (req, resp) => {
     catch (err) {
         return resp.status(500).json({
             isSuccess: false,
-            msg: 'Error updating user',
+            data:{msg: 'Error updating user'},
             error: err
         });
     }
@@ -282,10 +304,10 @@ const deleteUser = async (req, resp) => {
     try {
         let id = req.params.id;
         let userDb = await deleteUserDb(id)
-        if (!userDb._id) {
+        if (userDb === null) {
             return resp.status(501).json({
                 isSuccess: false,
-                msg: "Error delete user in Db"
+                data:{msg: "Error delete user in Db"}
             })
         } else {
             let userData = await UsersBL.deleteUser(id);
@@ -303,7 +325,7 @@ const deleteUser = async (req, resp) => {
     catch (err) {
         return resp.status(500).json({
             isSuccess: false,
-            msg: 'Error deleting movie',
+            data:{msg: 'Error deleting movie'},
             error: err
         });
     }
@@ -353,12 +375,12 @@ const getUserDbById = function (id) {
 const addUserDb = function (userDbObj) {
     return new Promise((resolve, reject) => {
         const userDb = new UsersDb({ ...userDbObj });
-        userDb.save(function (err) {
+        userDb.save(function (err,res) {
             if (err) {
                 reject(err);
             }
             else {
-                resolve({ msg: 'UserDb Created', _id: userDb._id });
+                resolve(res);
             }
         })
     })
@@ -367,12 +389,12 @@ const addUserDb = function (userDbObj) {
 const updateUserDb = function (id, userDbObj) {
     return new Promise((resolve, reject) => {
         UsersDb.findByIdAndUpdate(id, { ...userDbObj },{new: true},
-            function (err) {
+            function (err,res) {
                 if (err) {
                     reject(err);
                 }
                 else {
-                    resolve({ msg: 'UserDb Updated', _id: id });
+                    resolve(res);
                 }
             })
     })
@@ -380,12 +402,12 @@ const updateUserDb = function (id, userDbObj) {
 
 const deleteUserDb = function (id) {
     return new Promise((resolve, reject) => {
-        UsersDb.findByIdAndDelete(id, function (err) {
+        UsersDb.findByIdAndDelete(id, function (err,res) {
             if (err) {
                 reject(err);
             }
             else {
-                resolve({ msg: 'UserDb Deleted', _id: id });
+                resolve(res);
             }
         })
 
@@ -396,7 +418,7 @@ const generateToken = async (user) => {
     let resp = await UsersBL.getUserById(user._id);
     let userTimeOut = resp.sessionTimeOut;
 
-    return jwt.sign({_id:user._id}, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '3m' });
+    return jwt.sign({_id:user._id}, process.env.ACCESS_TOKEN_SECRET, { expiresIn: `${userTimeOut}s` });
 }
 
 module.exports = {getUserDbById,
@@ -406,4 +428,5 @@ module.exports = {getUserDbById,
                   addUser,
                   getAllUsers,
                   createAccount,
-                  login,logOut}
+                  login,logOut,
+                  getUserInfo}

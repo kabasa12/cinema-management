@@ -8,6 +8,7 @@ import LazyLoad from 'react-lazyload';
 import pellet from '../../Utils/pellet'
 import MovieComp from './MovieComp';
 import moviesUtil from '../../Utils/moviesUtil';
+import utils from '../../Utils/utils';
 import './Movie.css';
 
 const useStyles = makeStyles((theme) => ({
@@ -26,7 +27,8 @@ const useStyles = makeStyles((theme) => ({
   },
   header:{
     fontFamily:"Jolly Lodger",
-    letterSpacing:10
+    letterSpacing:10,
+    paddingTop: "15px"
   },
   btns:{
     fontFamily:"Jolly Lodger",
@@ -45,22 +47,12 @@ function MoviesComp () {
   const classes = useStyles();
   
   let {movieId} = useParams();
-
-  useEffect(() => {
-    
-    const getMovies = async () => {
-      let movies = await moviesUtil.getMovies();
-      if (movies.data.length > 0) {
-        await dispatch({type:"SET_MOVIES", payload:movies.data});
-      }
+  
+  useEffect(() => {  
+    if(!state.isLogin){
+      userInfo();
     }
 
-    const getMovieById = async (movieId) => {
-      let movie = await moviesUtil.getMovieById(movieId);
-      if (movie){
-        dispatch({type:"SET_CURR_MOVIE", payload:movie});
-      }
-    }
     if (movieId) {
       getMovieById(movieId); 
     } else {
@@ -77,6 +69,44 @@ function MoviesComp () {
     
   },[movieId]);
   
+
+  const userInfo = async () => {
+    try {
+      let user = await utils.getUserInfo();
+      
+      if(user.isSuccess){
+        await dispatch({type:"LOGIN",payload:user});
+      }
+    } catch(err) {
+      await dispatch({type:"LOGOUT"}); 
+      history.push('/');
+    }
+  }
+
+  const getMovies = async () => {
+    try{
+      let movies = await moviesUtil.getMovies();
+      if (movies.data.length > 0) {
+        await dispatch({type:"SET_MOVIES", payload:movies.data});
+      }
+    } catch(err) {
+      await dispatch({type:"LOGOUT"}); 
+      history.push('/');
+    }
+  }
+
+  const getMovieById = async (movieId) => {
+    try {
+      let movie = await moviesUtil.getMovieById(movieId);
+      if (movie){
+        dispatch({type:"SET_CURR_MOVIE", payload:movie});
+      }
+    } catch(err) {
+      await dispatch({type:"LOGOUT"}); 
+      history.push('/');
+    }
+  }
+
   const searchToggleHandle = () => {
     setSearchToggle(true);
     let movies = state.movies.filter(m => m.name.toLowerCase().includes(searchText.toLowerCase()));
@@ -106,7 +136,7 @@ function MoviesComp () {
   }
   
 
-  return state.isLogin? (
+  return (
     <div>
       <CssBaseline />
       <main>
@@ -194,7 +224,7 @@ function MoviesComp () {
         </Container>
       </main>
     </div>
-  ) : <div></div>;
+  ) 
 }
 
 export default MoviesComp;

@@ -23,7 +23,8 @@ const useStyles = makeStyles((theme) => ({
     button:{marginTop: theme.spacing(2)},
     header:{
       fontFamily:"Jolly Lodger",
-      letterSpacing:10
+      letterSpacing:10,
+      paddingTop: "15px"
     },
     btnPrimary:{ 
         marginTop: theme.spacing(2),
@@ -80,7 +81,7 @@ function SubscribeFormComp(props) {
     handleCancel();
   }
 
-  return state.isLogin? (
+  return (
           <Container component="div" maxWidth="xs">
             <CssBaseline />
             <div className={classes.paper}>
@@ -126,7 +127,7 @@ function SubscribeFormComp(props) {
               </Button>
             </div>
           </Container>
-  ) : <div></div>;
+  )
 }
 
 export default SubscribeFormComp;

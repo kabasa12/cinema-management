@@ -8,12 +8,10 @@ const ContextProvider = (props) => {
     const initialState = {
         isLogin: false,
         users:[],
-        loading:true,
         currentUser:{},
         isEditUser:false,
         editedUser:{},
         movies:[],
-        members:[],
         currentMovie:{},
         isEditMovie:false,
         currentMember:{},

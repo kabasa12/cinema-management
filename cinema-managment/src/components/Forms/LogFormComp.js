@@ -1,5 +1,4 @@
-import React,{useState,useContext} from 'react'
-import Context from '../../context/context';
+import React,{useState,useEffect} from 'react'
 
 import clsx from 'clsx';
 import { makeStyles } from '@material-ui/core/styles';
@@ -15,7 +14,7 @@ const useStyles = makeStyles((theme) => ({
         alignItems: 'center',
     },
     form: {
-        width: '100%', // Fix IE 11 issue.
+        width: '100%', 
         marginTop: theme.spacing(1),
     },
     submit: {
@@ -23,7 +22,8 @@ const useStyles = makeStyles((theme) => ({
     },
     header:{
         fontFamily:"Jolly Lodger",
-        letterSpacing:10
+        letterSpacing:10,
+        paddingTop: "15px"
       },
     btnPrimary:{
         fontFamily:"Jolly Lodger",
@@ -44,26 +44,31 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const LogFormComp = (props) => {
-    const [state] = useContext(Context);
     const classes = useStyles();
-
-
-    const [inputs, setInputs] = useState({userName:"",
-                                          password:""
-                                        });
-
+    const [userName,setUserName] = useState("");
+    const [password,setPassword] = useState("");
     
-    const handleInputChange = (event) => {
-        event.persist();
-        setInputs({...inputs, [event.target.name]: event.target.value});
+    useEffect(() => {
+        let userNameProps = props.userName; 
+        if(userNameProps)
+            setUserName(userNameProps)
+    },[]);
+
+    const handleUserNameChange = (event) => {
+        setUserName(event.target.value)
+    }
+
+    const handlePasswordChange = (event) => {
+        setPassword(event.target.value)
     }
 
     const handleSubmit =(e) => {
         e.preventDefault();
         switch(props.type){
             case "Login":
-                props.handleLogin(inputs.userName,inputs.password);
-                setInputs({userName:"",password:""});
+                props.handleLogin(userName,password);
+                setPassword("");
+                setUserName("");
                 break;
             case "Logout":
                 props.handleLogout();
@@ -79,7 +84,7 @@ const LogFormComp = (props) => {
             <Container component="div" maxWidth="xs">
                 <CssBaseline />
                 <div className={classes.paper}>
-                    <Typography component="h1" variant="h5" className={classes.header}>
+                    <Typography component="h1" variant="h2" className={classes.header}>
                         Sign in
                     </Typography>
                     <form className={classes.form} noValidate onSubmit={handleSubmit}>
@@ -93,8 +98,8 @@ const LogFormComp = (props) => {
                             name="userName"
                             type="email"
                             autoFocus
-                            value={inputs.userName}
-                            onChange={handleInputChange}
+                            value={userName}
+                            onChange={handleUserNameChange}
                         />
                         <TextField
                             variant="outlined"
@@ -106,8 +111,8 @@ const LogFormComp = (props) => {
                             type="password"
                             id="password"
                             autoComplete="current-password"
-                            value={inputs.password}
-                            onChange={handleInputChange}
+                            value={password}
+                            onChange={handlePasswordChange}
                         />
                         <Button
                             type="submit"
@@ -127,7 +132,7 @@ const LogFormComp = (props) => {
                 <Container component="div" maxWidth="xs">
                 <CssBaseline />
                 <div className={classes.paper}>
-                    <Typography component="h1" variant="h5" className={classes.header}>
+                    <Typography component="h1" variant="h2" className={classes.header}>
                         Sign Out
                     </Typography>
                     <form className={classes.form} noValidate onSubmit={handleSubmit}>

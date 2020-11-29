@@ -1,9 +1,11 @@
 import React,{useContext,useState,useEffect} from 'react';
 import Context from '../../context/context';
 import {Link,useHistory} from 'react-router-dom';
+import Spinner from '../Spinner/Spinner';
+
 import { makeStyles } from '@material-ui/core/styles';
 import clsx from 'clsx';
-import {Card,CardActionArea,CardActions,CardContent,CardMedia,Collapse} from '@material-ui/core';
+import {Card,CardActionArea,CardActions,CardContent,Collapse} from '@material-ui/core';
 import {Button,Typography,Grid,List,ListItem,IconButton,Tooltip} from '@material-ui/core';
 import {red} from '@material-ui/core/colors';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
@@ -33,12 +35,9 @@ const useStyles = makeStyles((theme) => ({
     display: 'flex',
     flexDirection: 'column',
   },
-  cardMedia: {
-    height: 0,
-    paddingTop: '56.25%', // 16:9
-  },
-  cardMediaOne:{
-    height:250
+  movieName:{
+    fontFamily:"Jolly Lodger",
+    letterSpacing:"0.0575em"
   },
   cardContent: {
     flexGrow: 1
@@ -70,9 +69,9 @@ function  MovieComp (props) {
   
   const handleExpandClick = () => {
     const getSubs = async () => {
-      let subs = await subscriptionsUtil.getMovieSubsc(props.movie._id)
-      if(subs.length > 0)
-          setSeubs(subs)
+      let subs = await subscriptionsUtil.getSubscriptionByMovieId(props.movie._id)
+      if(subs.data.length > 0)
+          setSeubs(subs.data)
     }
     if(!expanded) {
       getSubs()
@@ -96,7 +95,7 @@ function  MovieComp (props) {
             deleteMovie = await moviesUtil.deleteMovie(movie_id)
             if(deleteMovie.isSuccess){
               props.deleteHandle();
-              let updatedMovie = state.movies.filter(movie => movie._id != movie_id)
+              let updatedMovie = state.movies.filter(movie => movie._id !== movie_id)
               await dispatch({type:"SET_MOVIES", payload:updatedMovie});
             } else {
               console.log(deleteMovie.data.msg);
@@ -111,7 +110,7 @@ function  MovieComp (props) {
         deleteMovie = await moviesUtil.deleteMovie(movie_id)
         if(deleteMovie.isSuccess){
           props.deleteHandle();
-          let updatedMovie = state.movies.filter(movie => movie._id != movie_id)
+          let updatedMovie = state.movies.filter(movie => movie._id !== movie_id)
           await dispatch({type:"SET_MOVIES", payload:updatedMovie});
         } else {
           console.log(deleteMovie.data.msg);
@@ -130,19 +129,21 @@ function  MovieComp (props) {
   }
 
   let oneMovie = props.movieId ? "oneMovie" : "";
-  let media = props.movieId ? classes.cardMediaOne:classes.cardMedia;
   return state.userPermissions.viewMovies ? (
       <Grid className={oneMovie}>
         <Card className={classes.card}>
           <CardActionArea>
-            <CardMedia
-              className={media}
-              image={props.movie.image}
-              alt={props.movie.name}
-              title={props.movie.name}
-            />
+            {
+              props.movie.image ? (
+            <div className="CardImage">
+              <img  src={props.movie.image} alt={props.movie.name}/>
+            </div>
+            ) :
+              (<Spinner />)     
+            }
+            
             <CardContent className={classes.cardContent}>
-              <Typography gutterBottom variant="h6" component="h6">
+              <Typography className={classes.movieName} gutterBottom variant="h6" component="h6">
                 {props.movie.name}
               </Typography>
               <Typography variant="body2" component="h2">

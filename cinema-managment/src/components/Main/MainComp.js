@@ -9,6 +9,7 @@ import LoginComp from '../Log/LoginComp';
 import UserFormComp from '../Forms/UserFormComp';
 import MovieFormComp from '../Forms/MovieFormComp';
 import MemberFormComp from '../Forms/MemberFormComp';
+import CreateAccount from '../Forms/CreateAccountComp';
 
 function MainComp() {
 
@@ -27,7 +28,8 @@ function MainComp() {
             <Route path="/addUser" component={UserFormComp} />
             <Route path="/addMovie" component={MovieFormComp} />
             <Route path="/addMember" component={MemberFormComp} />
-            <Route path="/users" component={UsersComp} />  
+            <Route path="/users" component={UsersComp} />
+            <Route path="/create" component={CreateAccount} />
           </Switch>
       </div>
   );

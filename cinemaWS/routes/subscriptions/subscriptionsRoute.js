@@ -6,8 +6,8 @@ const MembersBL = require('../../models/subscriptions/members/membersBL');
 const auth = require('../../models/auth/jwtAuth');
 
 //-----------------------Movies handlers-------------------------------------//
-router.get('/movies', MoviesBL.getAllMovies);
-router.get('/movies/:id', MoviesBL.getMovieById);
+router.get('/movies', auth, MoviesBL.getAllMovies);
+router.get('/movies/:id',auth, MoviesBL.getMovieById);
 router.post('/movies',auth, MoviesBL.createMovie);
 router.put('/movies/:id',auth, MoviesBL.updateMovie);
 router.delete('/movies/:id',auth, MoviesBL.removeMovie);
@@ -20,10 +20,10 @@ router.put('/members/:id',auth, MembersBL.updateMember);
 router.delete('/members/:id',auth, MembersBL.removeMember);
 
 //-----------------------Subscriptions handlers-------------------------------------//
-router.get('/', SubscriptionsBL.getAllSubscriptions);
+router.get('/', auth, SubscriptionsBL.getAllSubscriptions);
 router.get('/:id', SubscriptionsBL.getSubscriptionById);
-router.get('/member/:id', SubscriptionsBL.getSubscriptionByMemberId);
-router.get('/movie/:id', SubscriptionsBL.getSubscriptionByMovieId);
+router.get('/member/:id',auth, SubscriptionsBL.getSubscriptionByMemberId);
+router.get('/movie/:id',auth, SubscriptionsBL.getSubscriptionByMovieId);
 router.post('/',auth, SubscriptionsBL.createSubscription);
 router.put('/:id',auth, SubscriptionsBL.updateSubscription);
 router.delete('/:id',auth, SubscriptionsBL.removeSubscription);

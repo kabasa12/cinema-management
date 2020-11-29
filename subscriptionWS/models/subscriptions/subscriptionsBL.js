@@ -4,14 +4,18 @@ const mongoose = require('mongoose');
 exports.getAllSubscriptions = async (req, resp) => {
     try {
         let data = await allSubscriptions();
-        return resp.status(200).json({ 
-            isSuccess: true, 
-            data:data});
+        if(data !== null)
+            return resp.status(200).json({ 
+                isSuccess: true, 
+                data:data});
+        return resp.status(203).json({ 
+            isSuccess: false, 
+            data:{msg:"Error - Subscriptions not found"}});
     }
     catch (err) {
         return resp.status(500).json({
             isSuccess: false,
-            msg: 'Error fetching all subscriptions',
+            data:{msg: 'Error fetching all subscriptions'},
             error: err
         });
     }
@@ -21,21 +25,18 @@ exports.getSubscriptionById = async (req, resp) => {
     try {
         let subscriptionId = req.params.id;
         let data = await subscriptionById(subscriptionId)
-        if (data !== null) {
+        if(data !== null)
             return resp.status(200).json({ 
                 isSuccess: true, 
                 data:data});
-        } else {
-            return resp.status(203).json({ 
-                isSuccess: false, 
-                data:{msg:"No subscription data found"}});
-        }
-        
+        return resp.status(203).json({ 
+            isSuccess: false, 
+            data:{msg:"Error - Subscription not found"}});
     }
     catch (err) {
         return resp.status(500).json({
             isSuccess: false,
-            msg: 'Error fetching all subscriptions',
+            data:{msg: 'Error fetching subscription by id'},
             error: err
         });
     }
@@ -45,20 +46,18 @@ exports.getSubscriptionByMemberId = async (req, resp) => {
     try {
         let memberId = req.params.id;
         let data = await subscriptionByMemberId(memberId)
-        if (data !== null) {
+        if(data !== null)
             return resp.status(200).json({ 
                 isSuccess: true, 
                 data:data});
-        } else {
-            return resp.status(203).json({ 
-                isSuccess: false, 
-                data:{msg:"No subscription data found for member " , memberId}});
-        } 
+        return resp.status(203).json({ 
+            isSuccess: false, 
+            data:{msg:"Error - No Subscriptions found for member"}});
     }
     catch (err) {
         return resp.status(500).json({
             isSuccess: false,
-            msg: 'Error fetching subscription by member',
+            data:{msg: 'Error fetching subscription by member'},
             error: err
         });
     }
@@ -68,20 +67,18 @@ exports.getSubscriptionByMovieId = async (req, resp) => {
     try {
         let movieId = req.params.id;
         let data = await subscriptionByMovieId(movieId)
-        if (data !== null) {
+        if(data !== null)
             return resp.status(200).json({ 
                 isSuccess: true, 
                 data:data});
-        } else {
-            return resp.status(203).json({ 
-                isSuccess: true, 
-                data:{msg:"No subscription data found for movie " , movieId}});
-        }  
+        return resp.status(203).json({ 
+            isSuccess: false, 
+            data:{msg:"Error - No Subscriptions found for movie"}});
     }
     catch (err) {
         return resp.status(500).json({
             isSuccess: false,
-            msg: 'Error fetching subscription by movies',
+            data:{msg: 'Error fetching subscription by movies'},
             error: err
         });
     }
@@ -90,14 +87,18 @@ exports.getSubscriptionByMovieId = async (req, resp) => {
 exports.createSubscription = async (req, resp) => {
     try {
         let data = await addSubscription(req.body)
-        return resp.status(200).json({ 
-            isSuccess: true, 
-            data:data});
+        if(data !== null)
+            return resp.status(200).json({ 
+                isSuccess: true, 
+                data:data});
+        return resp.status(203).json({ 
+            isSuccess: false, 
+            data:{msg:"Error - Subscriptions not created"}});
     }
     catch (err) {
         return resp.status(500).json({
             isSuccess: false,
-            msg: 'Error creating new subscription',
+            data:{msg: 'Error creating new subscription'},
             error: err
         });
     }
@@ -107,14 +108,18 @@ exports.updateSubscription = async (req, resp) => {
     try {
         let id = req.params.id;
         let data = await changeSubscription(id,req.body)
-        return resp.status(200).json({ 
-            isSuccess: true, 
-            data:data});
+        if(data !== null)
+            return resp.status(200).json({ 
+                isSuccess: true, 
+                data:data});
+        return resp.status(203).json({ 
+            isSuccess: false, 
+            data:{msg:"Error - Subscriptions not updated"}});
     }
     catch (err) {
         return resp.status(500).json({
             isSuccess: false,
-            msg: 'Error creating new subscription',
+            data:{msg: 'Error updating subscription'},
             error: err
         });
     }
@@ -124,14 +129,18 @@ exports.removeSubscription = async (req, resp) => {
     try {
         let id = req.params.id;
         let data = await deleteSubscription(id)
-        return resp.status(200).json({ 
-            isSuccess: true, 
-            data:data});
+        if(data !== null)
+            return resp.status(200).json({ 
+                isSuccess: true, 
+                data:data});
+        return resp.status(203).json({ 
+            isSuccess: false, 
+            data:{msg:"Error - Subscriptions not deleted"}});
     }
     catch (err) {
         return resp.status(500).json({
             isSuccess: false,
-            msg: 'Error creating new subscription',
+            data:{msg: 'Error deleting subscription'},
             error: err
         });
     }
@@ -194,12 +203,12 @@ const subscriptionByMovieId = function (movieId) {
 const addSubscription = function (subscriptionObj) {
     return new Promise((resolve, reject) => {
         const subscribe = new Subscribe({...subscriptionObj});
-        subscribe.save(function (err) {
+        subscribe.save(function (err,res) {
             if (err) {
                 reject(err);
             }
             else {
-                resolve({msg:'Subscription Created',id:subscribe._id});
+                resolve(res);
             }
         })
     })
@@ -208,12 +217,12 @@ const addSubscription = function (subscriptionObj) {
 const changeSubscription = function (id, subscriptionObj) {
     return new Promise((resolve, reject) => {
         Subscribe.findByIdAndUpdate(id,{...subscriptionObj}, 
-            function (err) {
+            function (err,res) {
                 if (err) {
                     reject(err);
                 }
                 else {
-                    resolve({msg:'Subscription Updated',_id:id});
+                    resolve(res);
                 }
             })
     })
@@ -221,12 +230,12 @@ const changeSubscription = function (id, subscriptionObj) {
 
 const deleteSubscription = function (id) {
     return new Promise((resolve, reject) => {
-        Subscribe.findByIdAndDelete(id, function (err) {
+        Subscribe.findByIdAndDelete(id, function (err,res) {
             if (err) {
                 reject(err);
             }
             else {
-                resolve({msg:'Subscription Deleted',_id:id});
+                resolve(res);
             }
         })
 
