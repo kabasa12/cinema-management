@@ -25,7 +25,7 @@ const login = async (req, resp) => {
                 let userDetails = await axios.get('http://localhost:8000/api/users/' + user._id);
                 
                 try{                  
-                    resp.cookie('access-token', accessToken, { maxAge: (60 * 5 * 24 * 7 ), httpOnly: true, sameSite: true});
+                    resp.cookie('access-token', accessToken, { maxAge: (60 * 30 * 24 * 7 ), httpOnly: true, sameSite: true});
 
                     return resp.status(200).json({
                         isSuccess: true,
@@ -418,7 +418,7 @@ const generateToken = async (user) => {
     let resp = await UsersBL.getUserById(user._id);
     let userTimeOut = resp.sessionTimeOut;
 
-    return jwt.sign({_id:user._id}, process.env.ACCESS_TOKEN_SECRET, { expiresIn: `${userTimeOut}s` });
+    return jwt.sign({_id:user._id}, process.env.ACCESS_TOKEN_SECRET, { expiresIn: `${userTimeOut}m` });
 }
 
 module.exports = {getUserDbById,
