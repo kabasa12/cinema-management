@@ -1,7 +1,7 @@
 const mongoose = require('mongoose')
 
 //Connection string
-mongoose.connect('mongodb://localhost:27017/cinemaDB',
+mongoose.connect('mongodb://127.0.0.1:27017/cinemaDB',
         {useNewUrlParser: true,
         useUnifiedTopology: true,
         //useCreateIndex: true ,
